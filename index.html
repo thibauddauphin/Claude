@@ -1,0 +1,1099 @@
+<title>Silicium &amp; Cie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  --ground:#cec7b6;
+  --panel:#e9e4d7;
+  --panel-2:#ddd6c4;
+  --sunk:#c3bba7;
+  --screen:#1b1d19;
+  --screen-ink:#ffb347;
+  --screen-dim:#8a6a34;
+  --ink:#241f18;
+  --ink-2:#605847;
+  --ink-3:#8b8371;
+  --line:#b3aa93;
+  --line-hard:#968c74;
+  --accent:#a63f1a;
+  --accent-ink:#fff6ee;
+  --good:#2f6b4c;
+  --warn:#8a6100;
+  --bad:#9c2b21;
+  --key-top:#efebdf;
+  --key-side:#b9b09a;
+  --shadow:rgba(60,48,28,.22);
+
+  --f-display:"IBM Plex Sans Condensed","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#14150f;
+    --panel:#1f211b;
+    --panel-2:#272a22;
+    --sunk:#171912;
+    --screen:#0b0c09;
+    --screen-ink:#ffb347;
+    --screen-dim:#7a5e2c;
+    --ink:#ece6d6;
+    --ink-2:#a79e88;
+    --ink-3:#7d745f;
+    --line:#3a3d31;
+    --line-hard:#4b4f40;
+    --accent:#ff7f45;
+    --accent-ink:#1a1209;
+    --good:#63c795;
+    --warn:#dfad45;
+    --bad:#e8705f;
+    --key-top:#2e3129;
+    --key-side:#16180f;
+    --shadow:rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#14150f;
+  --panel:#1f211b;
+  --panel-2:#272a22;
+  --sunk:#171912;
+  --screen:#0b0c09;
+  --screen-ink:#ffb347;
+  --screen-dim:#7a5e2c;
+  --ink:#ece6d6;
+  --ink-2:#a79e88;
+  --ink-3:#7d745f;
+  --line:#3a3d31;
+  --line-hard:#4b4f40;
+  --accent:#ff7f45;
+  --accent-ink:#1a1209;
+  --good:#63c795;
+  --warn:#dfad45;
+  --bad:#e8705f;
+  --key-top:#2e3129;
+  --key-side:#16180f;
+  --shadow:rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:14px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- bandeau d'instruments ---------- */
+.rack{
+  position:sticky;
+  top:env(safe-area-inset-top,0px);
+  z-index:20;
+  background:var(--panel);
+  border-bottom:2px solid var(--line-hard);
+  box-shadow:0 2px 0 var(--sunk),0 10px 24px -18px var(--shadow);
+}
+.rack-in{
+  max-width:1280px;margin:0 auto;
+  padding:10px 16px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;
+}
+.marque{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.marque b{
+  font-family:var(--f-display);font-weight:700;font-size:21px;
+  letter-spacing:-.01em;
+}
+.marque .serie{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);
+  border:1px solid var(--line);padding:1px 6px;
+}
+.jauges{display:flex;flex-wrap:wrap;gap:8px}
+.jauge{
+  background:var(--screen);
+  border:1px solid var(--line-hard);
+  border-radius:2px;
+  padding:5px 10px 6px;
+  min-width:104px;
+  position:relative;overflow:hidden;
+}
+.jauge::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.055) 0 1px,transparent 1px 3px);
+}
+.jauge .k{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--screen-dim);display:block;
+}
+.jauge .v{
+  font-family:var(--f-mono);font-weight:600;font-size:16px;
+  color:var(--screen-ink);font-variant-numeric:tabular-nums;
+  display:block;line-height:1.25;
+}
+.jauge.alerte .v{color:#ff6a52}
+.theme-btn{
+  background:var(--panel-2);border:1px solid var(--line-hard);border-radius:2px;
+  width:32px;height:32px;cursor:pointer;font-size:14px;line-height:1;
+}
+.theme-btn:hover{background:var(--panel)}
+
+/* ---------- plateau ---------- */
+.plateau{
+  max-width:1280px;margin:0 auto;
+  padding-block:16px;padding-left:16px;padding-right:16px;
+  display:grid;gap:16px;
+  grid-template-columns:1fr;
+  align-items:start;
+}
+@media (min-width:900px){
+  .plateau{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+}
+@media (min-width:1180px){
+  .plateau{grid-template-columns:330px minmax(0,1fr) 350px}
+  #bloc-atelier{grid-column:1;grid-row:1}
+  #bloc-marche {grid-column:1;grid-row:2}
+  #bloc-prod   {grid-column:2;grid-row:1 / span 2}
+  #bloc-rnd    {grid-column:3;grid-row:1 / span 2}
+}
+
+.bloc{
+  background:var(--panel);
+  border:1px solid var(--line-hard);
+  border-radius:3px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 0 var(--sunk);
+}
+:root[data-theme="dark"] .bloc{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 1px 0 #000}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .bloc{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 1px 0 #000}
+}
+.bloc > h2{
+  margin:0;
+  font-family:var(--f-mono);font-size:10px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2);
+  padding:7px 12px;
+  border-bottom:1px solid var(--line);
+  background:var(--panel-2);
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.bloc > h2 .compt{color:var(--ink-3);letter-spacing:.08em}
+.corps{padding:12px;display:flex;flex-direction:column;gap:12px}
+
+/* ---------- atelier ---------- */
+.produit{
+  background:var(--sunk);
+  border:1px solid var(--line);
+  border-radius:2px;
+  padding:10px 12px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.produit .millesime{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.produit h3{
+  margin:0;font-family:var(--f-display);font-weight:700;font-size:20px;
+  text-wrap:balance;
+}
+.produit p{margin:2px 0 0;font-size:12.5px;color:var(--ink-2);max-width:42ch}
+.fiche{
+  display:flex;gap:16px;margin-top:8px;padding-top:8px;
+  border-top:1px dashed var(--line-hard);
+  font-family:var(--f-mono);font-size:12px;
+}
+.fiche span{display:flex;flex-direction:column}
+.fiche i{font-style:normal;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.fiche b{font-weight:600;font-variant-numeric:tabular-nums}
+
+.touche{
+  position:relative;
+  width:100%;
+  border:1px solid var(--line-hard);
+  border-radius:6px;
+  background:linear-gradient(180deg,var(--key-top),var(--panel-2));
+  box-shadow:0 5px 0 var(--key-side),0 8px 14px -6px var(--shadow);
+  padding:20px 14px 22px;
+  cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  transition:transform .06s linear,box-shadow .06s linear;
+}
+.touche:hover{background:linear-gradient(180deg,var(--panel),var(--panel-2))}
+.touche:active,.touche.enfonce{
+  transform:translateY(4px);
+  box-shadow:0 1px 0 var(--key-side),0 2px 6px -3px var(--shadow);
+}
+.touche .lbl{
+  font-family:var(--f-display);font-weight:700;font-size:19px;
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.touche .sub{
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-2);
+  font-variant-numeric:tabular-nums;
+}
+.touche[disabled]{cursor:not-allowed;opacity:.55}
+.bulle{
+  position:absolute;left:50%;top:6px;
+  font-family:var(--f-mono);font-weight:600;font-size:13px;
+  color:var(--good);pointer-events:none;white-space:nowrap;
+}
+@media (prefers-reduced-motion:no-preference){
+  .bulle{animation:monte .85s ease-out forwards}
+}
+@keyframes monte{
+  from{opacity:1;transform:translate(-50%,0)}
+  to{opacity:0;transform:translate(-50%,-38px)}
+}
+
+.appro{display:flex;gap:8px;align-items:stretch}
+.appro .btn{flex:1}
+.btn{
+  background:var(--panel-2);
+  border:1px solid var(--line-hard);
+  border-radius:2px;
+  padding:8px 10px;
+  cursor:pointer;
+  text-align:left;
+  display:flex;flex-direction:column;gap:1px;
+  transition:background .1s linear;
+}
+.btn:hover:not([disabled]){background:var(--panel)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn[hidden]{display:none}
+.btn .t{font-weight:600;font-size:12.5px}
+.btn .p{font-family:var(--f-mono);font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.btn.primaire{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primaire .p{color:var(--accent-ink);opacity:.8}
+.btn.primaire:hover:not([disabled]){filter:brightness(1.08);background:var(--accent)}
+
+.alerte-stock{
+  display:none;
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;
+  color:var(--bad);border:1px solid var(--bad);border-left-width:4px;
+  padding:6px 9px;border-radius:2px;
+}
+.alerte-stock.on{display:block}
+
+/* ---------- lignes (production / R&D) ---------- */
+.liste{display:flex;flex-direction:column;gap:6px}
+.ligne{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  text-align:left;
+  background:transparent;
+  border:1px solid var(--line);
+  border-radius:2px;
+  padding:8px 10px;
+  cursor:pointer;
+  transition:background .1s linear,border-color .1s linear;
+}
+.ligne:hover:not([disabled]){background:var(--panel-2);border-color:var(--line-hard)}
+.ligne[disabled]{cursor:not-allowed;opacity:.5}
+.ligne .nom{font-weight:600;font-size:13px;display:flex;align-items:center;gap:7px}
+.ligne .det{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-2);margin-top:1px}
+.ligne .droite{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ligne .prix{font-size:12.5px;font-weight:600}
+.ligne .qte{font-size:10.5px;color:var(--ink-3);letter-spacing:.06em}
+.ligne.abordable{border-left:4px solid var(--good)}
+.ligne.possede{background:var(--panel-2);border-left:4px solid var(--accent);cursor:default;opacity:1}
+.ligne.possede .prix{color:var(--accent)}
+.pastille{
+  font-family:var(--f-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid currentColor;border-radius:2px;padding:0 4px;
+}
+.pastille.verte{color:var(--good)}
+.pastille.rouge{color:var(--bad)}
+.pastille.ambre{color:var(--warn)}
+
+/* ---------- marché ---------- */
+.part{display:flex;flex-direction:column;gap:5px}
+.barre{
+  height:16px;background:var(--sunk);border:1px solid var(--line-hard);
+  border-radius:2px;overflow:hidden;position:relative;
+}
+.barre i{
+  display:block;height:100%;background:var(--accent);
+  transition:width .4s ease-out;
+}
+.barre-lbl{
+  display:flex;justify-content:space-between;
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.graphe{display:flex;flex-direction:column;gap:4px}
+.graphe canvas{width:100%;height:78px;display:block}
+.graphe .legende{
+  display:flex;justify-content:space-between;
+  font-family:var(--f-mono);font-size:10px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;
+}
+.evenement{
+  border:1px solid var(--warn);border-left-width:4px;border-radius:2px;
+  padding:7px 9px;display:none;
+}
+.evenement.on{display:block}
+.evenement .n{font-weight:600;font-size:12.5px}
+.evenement .e{font-family:var(--f-mono);font-size:11px;color:var(--ink-2)}
+.journal{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-direction:column;gap:5px;
+  font-size:12px;
+}
+.journal li{display:flex;gap:8px;color:var(--ink-2)}
+.journal time{
+  font-family:var(--f-mono);font-size:11px;color:var(--ink-3);
+  flex:0 0 auto;font-variant-numeric:tabular-nums;
+}
+
+/* ---------- frise ---------- */
+.frise{
+  max-width:1280px;margin:0 auto;
+  padding:0 16px 28px;
+}
+.frise h2{
+  font-family:var(--f-mono);font-size:10px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);
+  margin:0 0 8px;
+}
+.rail{
+  display:grid;grid-auto-flow:column;
+  grid-auto-columns:minmax(132px,1fr);
+  gap:0;overflow-x:auto;
+  border-top:2px solid var(--line-hard);
+}
+.etape{
+  padding:9px 12px 10px;
+  border-right:1px solid var(--line);
+  position:relative;
+  opacity:.4;
+}
+.etape:last-child{border-right:0}
+.etape::before{
+  content:"";position:absolute;top:-2px;left:0;height:2px;width:0;
+  background:var(--accent);
+}
+.etape.faite{opacity:.75}
+.etape.faite::before{width:100%}
+.etape.active{opacity:1}
+.etape.active::before{width:100%;height:4px;top:-3px}
+.etape .an{
+  font-family:var(--f-mono);font-size:11px;font-weight:600;
+  color:var(--accent);letter-spacing:.05em;
+}
+.etape .titre{font-family:var(--f-display);font-weight:600;font-size:13.5px;line-height:1.25}
+.pied{
+  max-width:1280px;margin:0 auto;padding:0 16px 32px;
+  font-size:11.5px;color:var(--ink-3);
+  display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;
+}
+.pied button{
+  background:none;border:0;padding:0;cursor:pointer;
+  color:var(--ink-3);text-decoration:underline;text-underline-offset:2px;font-size:11.5px;
+}
+.pied button:hover{color:var(--accent)}
+</style>
+
+<header class="rack">
+  <div class="rack-in">
+    <div class="marque">
+      <b>Silicium &amp; Cie</b>
+      <span class="serie">Modèle&nbsp;II · Rév.&nbsp;C</span>
+    </div>
+    <div class="jauges">
+      <div class="jauge"><span class="k">Trésorerie</span><span class="v" id="j-cash">—</span></div>
+      <div class="jauge"><span class="k">Revenu</span><span class="v" id="j-rev">—</span></div>
+      <div class="jauge" id="j-comp-box"><span class="k">Composants</span><span class="v" id="j-comp">—</span></div>
+      <div class="jauge"><span class="k">Points R&amp;D</span><span class="v" id="j-rnd">—</span></div>
+      <div class="jauge"><span class="k">Part de marché</span><span class="v" id="j-part">—</span></div>
+    </div>
+    <button class="theme-btn" id="theme" type="button" aria-label="Changer de thème" title="Changer de thème">◐</button>
+  </div>
+</header>
+
+<main class="plateau">
+
+  <section class="bloc" id="bloc-atelier">
+    <h2>Atelier <span class="compt" id="h-atelier"></span></h2>
+    <div class="corps">
+      <div class="produit">
+        <span class="millesime" id="p-annee"></span>
+        <h3 id="p-nom"></h3>
+        <p id="p-desc"></p>
+        <div class="fiche">
+          <span><i>Prix de vente</i><b id="p-prix"></b></span>
+          <span><i>Composants / unité</i><b id="p-comps"></b></span>
+          <span><i>Marge</i><b id="p-marge"></b></span>
+        </div>
+      </div>
+
+      <button class="touche" id="assembler" type="button">
+        <span class="lbl">Assembler</span>
+        <span class="sub" id="assembler-sub"></span>
+      </button>
+
+      <div class="alerte-stock" id="alerte">Production à l'arrêt — stock de composants épuisé.</div>
+
+      <div class="appro">
+        <button class="btn" id="acheter-comp" type="button">
+          <span class="t" id="acheter-comp-t">Acheter des composants</span>
+          <span class="p" id="acheter-comp-p"></span>
+        </button>
+      </div>
+
+      <button class="btn primaire" id="ipo" type="button" hidden>
+        <span class="t" id="ipo-t">Entrer en bourse</span>
+        <span class="p" id="ipo-p"></span>
+      </button>
+    </div>
+  </section>
+
+  <section class="bloc" id="bloc-prod">
+    <h2>Moyens de production <span class="compt" id="h-prod"></span></h2>
+    <div class="corps">
+      <div class="liste" id="liste-gens"></div>
+    </div>
+  </section>
+
+  <section class="bloc" id="bloc-rnd">
+      <h2>Recherche &amp; développement <span class="compt" id="h-rnd"></span></h2>
+      <div class="corps">
+        <div class="liste" id="liste-techs"></div>
+      </div>
+  </section>
+
+  <section class="bloc" id="bloc-marche">
+      <h2>Marché</h2>
+      <div class="corps">
+        <div class="part">
+          <div class="barre"><i id="barre-part" style="width:0%"></i></div>
+          <div class="barre-lbl"><span>Part de marché</span><span id="part-txt">0 %</span></div>
+        </div>
+        <div class="graphe">
+          <canvas id="courbe" aria-label="Revenu des 60 dernières secondes"></canvas>
+          <div class="legende"><span>Revenu · 60 s</span><span id="courbe-max"></span></div>
+        </div>
+        <div class="evenement" id="evenement">
+          <div class="n" id="ev-nom"></div>
+          <div class="e" id="ev-eff"></div>
+        </div>
+        <ul class="journal" id="journal"></ul>
+      </div>
+  </section>
+
+</main>
+
+<nav class="frise" aria-label="Progression historique">
+  <h2>Ères</h2>
+  <div class="rail" id="rail"></div>
+</nav>
+
+<div class="pied">
+  <span id="pied-stat"></span>
+  <button type="button" id="reset">Recommencer une partie</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== données ===================== */
+
+const PRODUITS = [
+  {an:"1975", nom:"Kit à souder 8 bits", prix:14, comps:1, pc:3, rnd:.12,
+   desc:"Un sachet de circuits, une notice ronéotypée. Le client soude lui-même — et adore ça."},
+  {an:"1979", nom:"Micro familial", prix:110, comps:4, pc:8, rnd:.3,
+   desc:"Clavier intégré, sortie télé, 4 ko de RAM. On le vend au rayon hi-fi des grands magasins."},
+  {an:"1984", nom:"Compatible PC", prix:720, comps:10, pc:22, rnd:.8,
+   desc:"Le même bus, le même BIOS, moitié prix. Les services achats des entreprises adorent."},
+  {an:"1991", nom:"Portable à écran LCD", prix:3800, comps:24, pc:48, rnd:2,
+   desc:"6,8 kg, deux heures d'autonomie, une poignée renforcée. On appelle ça la mobilité."},
+  {an:"1997", nom:"Serveur web 1U", prix:21000, comps:70, pc:120, rnd:6,
+   desc:"Vendu par baies entières à des start-ups qui n'ont pas encore de chiffre d'affaires."},
+  {an:"2007", nom:"Téléphone à dalle tactile", prix:120000, comps:180, pc:300, rnd:16,
+   desc:"Lot revendeur de 40 unités. La marge se fait désormais sur la boutique d'applications."},
+  {an:"2012", nom:"Offre cloud (rack loué)", prix:750000, comps:480, pc:700, rnd:45,
+   desc:"On ne vend plus des machines, on vend des heures. Contrat annuel, facturé à la seconde."},
+  {an:"2023", nom:"Grappe d'accélérateurs", prix:5200000, comps:1400, pc:1800, rnd:130,
+   desc:"Huit cartes, une baie, une facture d'électricité de PME. Livraison en dix-huit mois."}
+];
+
+const ERES = [
+  {an:"1975", t:"Le garage"},
+  {an:"1979", t:"Le micro au foyer"},
+  {an:"1984", t:"Guerre des compatibles"},
+  {an:"1991", t:"L'informatique nomade"},
+  {an:"1997", t:"La ruée vers le Web"},
+  {an:"2007", t:"Tout dans la poche"},
+  {an:"2012", t:"Le nuage"},
+  {an:"2023", t:"L'âge des modèles"}
+];
+
+const GENS = [
+  {nom:"Établi de garage",        det:"Votre table de cuisine, réquisitionnée.", base:45,        taux:.15},
+  {nom:"Stagiaire en BTS",        det:"Soude vite, se trompe parfois.",          base:320,       taux:.8},
+  {nom:"Technicien d'atelier",    det:"Quinze ans de métier, zéro reprise.",     base:2600,      taux:3.5},
+  {nom:"Chaîne d'assemblage",     det:"Tapis roulant, postes en série.",          base:21000,     taux:15},
+  {nom:"Usine sous-traitée",      det:"Trois équipes, deux fuseaux horaires.",    base:170000,    taux:65},
+  {nom:"Robot de pose CMS",       det:"12 000 composants placés à l'heure.",      base:1400000,   taux:280},
+  {nom:"Ferme de serveurs",       det:"Provisionnement automatique des baies.",   base:12000000,  taux:1200},
+  {nom:"Ordonnanceur autonome",   det:"Décide seul de la production du jour.",    base:95000000,  taux:5000}
+];
+
+const TECHS = [
+  {id:"fer",   nom:"Fer thermorégulé",         cout:6,     eff:"Assemblage manuel ×4"},
+  {id:"mos",   nom:"Transistor MOS",           cout:26,    eff:"Micro familial · production ×1,25", ouvre:1},
+  {id:"pcb",   nom:"Circuit double face",      cout:70,    eff:"−25 % de composants par unité"},
+  {id:"appro", nom:"Approvisionnement auto",   cout:150,   eff:"Rachète les composants toute seule"},
+  {id:"gui",   nom:"Interface graphique",      cout:280,   eff:"Compatible PC · prix ×1,3", ouvre:2},
+  {id:"hdd",   nom:"Disque dur 10 Mo",         cout:620,   eff:"Portable LCD", ouvre:3},
+  {id:"bus",   nom:"Bus d'extension",          cout:950,   eff:"Production ×1,4"},
+  {id:"modem", nom:"Modem 56 k",               cout:1700,  eff:"Serveur web 1U", ouvre:4},
+  {id:"marque",nom:"Campagne de marque",       cout:2600,  eff:"Prix ×1,5 · notoriété"},
+  {id:"arm",   nom:"Puce à faible conso",      cout:4800,  eff:"Téléphone tactile", ouvre:5},
+  {id:"virtu", nom:"Virtualisation",           cout:12000, eff:"Offre cloud", ouvre:6},
+  {id:"gpu",   nom:"Calcul parallèle",         cout:22000, eff:"Production ×2"},
+  {id:"nn",    nom:"Réseaux de neurones",      cout:48000, eff:"Grappe d'accélérateurs", ouvre:7}
+];
+
+const EVENEMENTS = [
+  {n:"Pénurie de mémoire",        e:"Composants ×2,2",    cle:"comp",  v:2.2,  bon:false},
+  {n:"Rentrée scolaire",          e:"Prix de vente ×1,8", cle:"prix",  v:1.8,  bon:true},
+  {n:"Grève des transporteurs",   e:"Production ×0,55",   cle:"prod",  v:.55,  bon:false},
+  {n:"Banc d'essai élogieux",     e:"Prix de vente ×2,2", cle:"prix",  v:2.2,  bon:true},
+  {n:"Salon de l'informatique",   e:"Points R&D ×3",      cle:"rnd",   v:3,    bon:true},
+  {n:"Faille de sécurité",        e:"Prix de vente ×0,6", cle:"prix",  v:.6,   bon:false},
+  {n:"Marché public signé",       e:"Production ×1,7",    cle:"prod",  v:1.7,  bon:true},
+  {n:"Guerre des prix",           e:"Prix de vente ×0,7", cle:"prix",  v:.7,   bon:false}
+];
+
+const CLE_SAUVE = "silicium-cie-v1";
+
+/* ===================== état ===================== */
+
+function partieNeuve(actions){
+  return {
+    cash:30, comps:12, rnd:0,
+    gens:GENS.map(()=>0),
+    techs:{},
+    prod:0,
+    unites:0, ca:0, caVie:0,
+    actions:actions||0,
+    buf:0,
+    ev:null,
+    hist:new Array(60).fill(0),
+    journal:[]
+  };
+}
+
+/* Partie de démonstration : l'atelier tourne déjà, 1975, quelques mois d'activité. */
+function partieDemo(){
+  const s = partieNeuve(0);
+  s.cash = 1240; s.comps = 340; s.rnd = 33;
+  s.gens[0] = 4; s.gens[1] = 2;
+  s.techs.fer = true;
+  s.unites = 465; s.ca = 5910; s.caVie = 5910;
+  s.hist = Array.from({length:60},(_,i)=>{
+    const base = 14 + i*.16;
+    return Math.max(0, base + Math.sin(i/4)*3.4 + (i%7===0?2.5:0));
+  });
+  s.journal = [
+    {an:"1975", txt:"Deux stagiaires recrutés : l'établi ne suffisait plus."},
+    {an:"1975", txt:"Fer thermorégulé acheté d'occasion. Les soudures tiennent."},
+    {an:"1975", txt:"Première commande groupée d'un club d'informatique : 40 kits."}
+  ];
+  return s;
+}
+
+let S = partieDemo();
+let sauveOk = true;
+
+function charger(){
+  try{
+    const brut = localStorage.getItem(CLE_SAUVE);
+    if(!brut) return;
+    const o = JSON.parse(brut);
+    if(o && typeof o.cash === "number"){
+      S = Object.assign(partieNeuve(0), o);
+      S.gens = GENS.map((_,i)=> (o.gens && o.gens[i]) || 0);
+      S.hist = Array.isArray(o.hist) && o.hist.length===60 ? o.hist : new Array(60).fill(0);
+      S.journal = Array.isArray(o.journal) ? o.journal.slice(-6) : [];
+      S.ev = null;
+    }
+  }catch(e){ sauveOk = false; }
+}
+function sauver(){
+  if(!sauveOk) return;
+  try{ localStorage.setItem(CLE_SAUVE, JSON.stringify(S)); }
+  catch(e){ sauveOk = false; }
+}
+
+/* ===================== règles ===================== */
+
+const q = id => document.getElementById(id);
+const ok = id => !!S.techs[id];
+
+function multActions(){ return 1 + S.actions*.08; }
+
+function multProd(){
+  let m = multActions();
+  if(ok("mos")) m *= 1.25;
+  if(ok("bus")) m *= 1.4;
+  if(ok("gpu")) m *= 2;
+  if(S.ev && S.ev.cle==="prod") m *= S.ev.v;
+  return m;
+}
+function multPrix(){
+  let m = multActions();
+  if(ok("gui")) m *= 1.3;
+  if(ok("marque")) m *= 1.5;
+  if(S.ev && S.ev.cle==="prix") m *= S.ev.v;
+  return m;
+}
+function multRnd(){ return (S.ev && S.ev.cle==="rnd") ? S.ev.v : 1; }
+function multCompPrix(){ return (S.ev && S.ev.cle==="comp") ? S.ev.v : 1; }
+
+function produit(){ return PRODUITS[S.prod]; }
+function besoinComps(){ return produit().comps * (ok("pcb") ? .75 : 1); }
+function prixUnite(){ return produit().prix * multPrix(); }
+function prixComp(){ return produit().pc * multCompPrix(); }
+
+function cadence(){
+  let u = 0;
+  for(let i=0;i<GENS.length;i++) u += S.gens[i]*GENS[i].taux;
+  return u * multProd();
+}
+function forceClic(){ return (ok("fer") ? 4 : 1) * multActions(); }
+function coutGen(i){ return Math.ceil(GENS[i].base * Math.pow(1.16, S.gens[i])); }
+function lotComps(){ return Math.max(25, Math.ceil(besoinComps() * Math.max(cadence(),1) * 30)); }
+
+function partMarche(){
+  const l = Math.log10(1 + S.unites);
+  let p = 1.25 * l * l;
+  if(ok("marque")) p *= 1.25;
+  return Math.min(92, p);
+}
+function ereIndex(){
+  let e = 0;
+  for(let i=0;i<TECHS.length;i++) if(TECHS[i].ouvre!==undefined && S.techs[TECHS[i].id]) e = Math.max(e, TECHS[i].ouvre);
+  return e;
+}
+function actionsIPO(){
+  if(S.ca < 25e6) return 0;
+  return Math.floor(12 * Math.sqrt(S.ca / 25e6));
+}
+
+function noter(txt){
+  S.journal.push({an:ERES[ereIndex()].an, txt:txt});
+  if(S.journal.length > 6) S.journal.shift();
+  rendreJournal();
+}
+
+/* ===================== format ===================== */
+
+const UNITES = [["Md",1e9],["M",1e6],["k",1e3]];
+function n(v){
+  if(!isFinite(v)) return "—";
+  const s = v<0 ? "−" : ""; v = Math.abs(v);
+  for(const [suf,seuil] of UNITES){
+    if(v >= seuil) return s + (v/seuil).toLocaleString("fr-FR",{maximumFractionDigits:(v/seuil<10?2:1)}) + " " + suf;
+  }
+  if(v >= 100) return s + Math.round(v).toLocaleString("fr-FR");
+  return s + (Math.round(v*10)/10).toLocaleString("fr-FR");
+}
+const eur = v => n(v) + " €";
+
+/* ===================== boucle ===================== */
+
+let dernier = performance.now();
+let caSeconde = 0, horlogeSec = 0, horlogeEv = 22 + Math.random()*30, depuisRendu = 0;
+
+function boucle(now){
+  let dt = (now - dernier)/1000;
+  dernier = now;
+  if(dt > .5) dt = .5;
+  tourner(dt);
+  depuisRendu += dt;
+  if(depuisRendu >= .1){ depuisRendu = 0; rendreJauges(); }
+  requestAnimationFrame(boucle);
+}
+
+function tourner(dt){
+  /* événement en cours */
+  if(S.ev){
+    S.ev.reste -= dt;
+    if(S.ev.reste <= 0){ S.ev = null; rendreEvenement(); }
+  }else{
+    horlogeEv -= dt;
+    if(horlogeEv <= 0){
+      const e = EVENEMENTS[Math.floor(Math.random()*EVENEMENTS.length)];
+      S.ev = {n:e.n, e:e.e, cle:e.cle, v:e.v, bon:e.bon, reste:20 + Math.random()*16};
+      horlogeEv = 45 + Math.random()*45;
+      noter(e.n + " — " + e.e.toLowerCase() + ".");
+      rendreEvenement();
+    }
+  }
+
+  /* approvisionnement automatique */
+  const besoin = besoinComps();
+  if(ok("appro")){
+    const cible = besoin * cadence() * 20;
+    if(S.comps < cible){
+      const manque = cible - S.comps;
+      const budget = Math.min(S.cash * .35, manque * prixComp());
+      if(budget > 0){
+        const achete = budget / prixComp();
+        S.comps += achete; S.cash -= budget;
+      }
+    }
+  }
+
+  /* production */
+  S.buf += cadence() * dt;
+  let faites = 0;
+  if(S.buf >= 1){
+    const voulu = Math.floor(S.buf);
+    const possible = Math.floor(S.comps / besoin);
+    faites = Math.min(voulu, possible);
+    S.buf -= voulu;
+    if(S.buf < 0) S.buf = 0;
+  }
+  if(faites > 0) encaisser(faites);
+
+  const bloque = cadence() > 0 && S.comps < besoin;
+  q("alerte").classList.toggle("on", bloque);
+  q("j-comp-box").classList.toggle("alerte", bloque);
+
+  /* horloges d'affichage */
+  horlogeSec += dt;
+  if(horlogeSec >= 1){
+    horlogeSec -= 1;
+    S.hist.push(caSeconde); S.hist.shift();
+    caSeconde = 0;
+    dessinerCourbe();
+    sauver();
+  }
+}
+
+function encaisser(u){
+  const gain = u * prixUnite();
+  S.cash += gain; S.ca += gain; S.caVie += gain;
+  S.comps -= u * besoinComps();
+  if(S.comps < 0) S.comps = 0;
+  S.unites += u;
+  S.rnd += u * produit().rnd * multRnd();
+  caSeconde += gain;
+  return gain;
+}
+
+/* ===================== rendu ===================== */
+
+function rendreJauges(){
+  q("j-cash").textContent = eur(S.cash);
+  q("j-rev").textContent  = eur(cadence() * prixUnite()) + "/s";
+  q("j-comp").textContent = n(S.comps);
+  q("j-rnd").textContent  = n(S.rnd);
+  const p = partMarche();
+  q("j-part").textContent = p.toLocaleString("fr-FR",{maximumFractionDigits:1}) + " %";
+  q("barre-part").style.width = p + "%";
+  q("part-txt").textContent = p.toLocaleString("fr-FR",{maximumFractionDigits:1}) + " %";
+
+  q("assembler-sub").textContent =
+    "+" + eur(forceClic()*prixUnite()) + " · " + n(forceClic()*besoinComps()) + " composants";
+  q("assembler").disabled = S.comps < besoinComps()*forceClic();
+
+  const lot = lotComps();
+  q("acheter-comp-t").textContent = "Acheter " + n(lot) + " composants";
+  q("acheter-comp-p").textContent = eur(lot*prixComp()) + " · " + eur(prixComp()) + " l'unité"
+    + (ok("appro") ? " · rachat auto actif" : "");
+  q("acheter-comp").disabled = S.cash < lot*prixComp();
+
+  q("h-atelier").textContent = n(S.unites) + " unités vendues";
+  q("h-prod").textContent = n(cadence()) + " u/s";
+  q("h-rnd").textContent = Object.keys(S.techs).length + "/" + TECHS.length;
+
+  const act = actionsIPO();
+  const btnIpo = q("ipo");
+  btnIpo.hidden = act <= 0;
+  if(act > 0){
+    q("ipo-p").textContent = act + " actions · +" + (act*8) + " % production et prix, à vie";
+  }
+
+  q("pied-stat").textContent =
+    "Chiffre d'affaires cumulé : " + eur(S.caVie)
+    + " · " + S.actions + " action" + (S.actions>1?"s":"")
+    + (sauveOk ? " · partie sauvegardée dans ce navigateur" : " · sauvegarde indisponible ici");
+
+  majLignes();
+}
+
+/* --- produit courant --- */
+function rendreProduit(){
+  const p = produit();
+  q("p-annee").textContent = p.an + " · Produit phare";
+  q("p-nom").textContent = p.nom;
+  q("p-desc").textContent = p.desc;
+  q("p-prix").textContent = eur(p.prix * multPrix());
+  q("p-comps").textContent = n(besoinComps());
+  q("p-marge").textContent = eur(p.prix*multPrix() - besoinComps()*prixComp());
+  rendreFrise();
+}
+
+/* --- listes --- */
+const refsGens = [], refsTechs = [];
+
+function construireListes(){
+  const lg = q("liste-gens");
+  lg.textContent = "";
+  GENS.forEach((g,i)=>{
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "ligne";
+    b.innerHTML = '<span><span class="nom"></span><span class="det"></span></span>'
+                + '<span class="droite"><span class="prix"></span><br><span class="qte"></span></span>';
+    b.addEventListener("click", ()=>acheterGen(i));
+    lg.appendChild(b);
+    refsGens.push({b:b, nom:b.querySelector(".nom"), det:b.querySelector(".det"),
+                   prix:b.querySelector(".prix"), qte:b.querySelector(".qte")});
+  });
+
+  const lt = q("liste-techs");
+  lt.textContent = "";
+  TECHS.forEach((t,i)=>{
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "ligne";
+    b.innerHTML = '<span><span class="nom"></span><span class="det"></span></span>'
+                + '<span class="droite"><span class="prix"></span><br><span class="qte">R&amp;D</span></span>';
+    b.addEventListener("click", ()=>acheterTech(i));
+    lt.appendChild(b);
+    refsTechs.push({b:b, nom:b.querySelector(".nom"), det:b.querySelector(".det"),
+                    prix:b.querySelector(".prix"), qte:b.querySelector(".qte")});
+  });
+}
+
+function majLignes(){
+  GENS.forEach((g,i)=>{
+    const r = refsGens[i], c = coutGen(i), abordable = S.cash >= c;
+    r.nom.textContent = g.nom;
+    r.det.textContent = g.det + " · " + n(g.taux*multProd()) + " u/s"
+      + (S.gens[i] ? " · " + n(S.gens[i]*g.taux*multProd()) + " u/s au total" : "");
+    r.prix.textContent = eur(c);
+    r.qte.textContent = S.gens[i] ? "×" + S.gens[i] : "aucun";
+    r.b.disabled = !abordable;
+    r.b.classList.toggle("abordable", abordable);
+  });
+
+  TECHS.forEach((t,i)=>{
+    const r = refsTechs[i], acquis = ok(t.id), abordable = S.rnd >= t.cout;
+    r.nom.textContent = t.nom;
+    r.det.textContent = t.eff;
+    r.prix.textContent = acquis ? "acquis" : n(t.cout);
+    r.qte.textContent = acquis ? "" : "points R&D";
+    r.b.disabled = acquis || !abordable;
+    r.b.classList.toggle("possede", acquis);
+    r.b.classList.toggle("abordable", !acquis && abordable);
+  });
+}
+
+function rendreEvenement(){
+  const e = q("evenement");
+  if(!S.ev){ e.classList.remove("on"); return; }
+  e.classList.add("on");
+  e.style.borderColor = S.ev.bon ? "var(--good)" : "var(--bad)";
+  q("ev-nom").textContent = S.ev.n;
+  q("ev-eff").textContent = S.ev.e + " — quelques secondes.";
+}
+
+function rendreJournal(){
+  const u = q("journal");
+  u.textContent = "";
+  S.journal.slice().reverse().forEach(l=>{
+    const li = document.createElement("li");
+    const t = document.createElement("time"); t.textContent = l.an;
+    const s = document.createElement("span"); s.textContent = l.txt;
+    li.appendChild(t); li.appendChild(s); u.appendChild(li);
+  });
+}
+
+function rendreFrise(){
+  const r = q("rail");
+  const e = ereIndex();
+  r.textContent = "";
+  ERES.forEach((x,i)=>{
+    const d = document.createElement("div");
+    d.className = "etape" + (i<e ? " faite" : "") + (i===e ? " active" : "");
+    d.innerHTML = '<div class="an"></div><div class="titre"></div>';
+    d.querySelector(".an").textContent = x.an;
+    d.querySelector(".titre").textContent = x.t;
+    r.appendChild(d);
+  });
+}
+
+/* --- courbe de revenu --- */
+function dessinerCourbe(){
+  const c = q("courbe");
+  const r = c.getBoundingClientRect();
+  if(r.width < 4) return;
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  c.width = Math.round(r.width*dpr); c.height = Math.round(78*dpr);
+  const x = c.getContext("2d");
+  x.setTransform(dpr,0,0,dpr,0,0);
+  const W = r.width, H = 78, P = 6;
+
+  const css = getComputedStyle(document.body);
+  const encre = css.getPropertyValue("--accent").trim();
+  const trait = css.getPropertyValue("--line").trim();
+
+  x.clearRect(0,0,W,H);
+
+  const max = Math.max.apply(null, S.hist.concat([1]));
+  q("courbe-max").textContent = "max " + eur(max) + "/s";
+
+  /* ligne de base discrète */
+  x.strokeStyle = trait; x.lineWidth = 1;
+  x.beginPath(); x.moveTo(0,H-.5); x.lineTo(W,H-.5); x.stroke();
+  x.beginPath(); x.moveTo(0,H/2); x.lineTo(W,H/2);
+  x.setLineDash([2,4]); x.stroke(); x.setLineDash([]);
+
+  const pas = W/(S.hist.length-1);
+  const py = v => H - P - (v/max)*(H-P*2);
+
+  /* aire */
+  x.beginPath();
+  x.moveTo(0,H);
+  S.hist.forEach((v,i)=> x.lineTo(i*pas, py(v)));
+  x.lineTo(W,H); x.closePath();
+  x.fillStyle = encre; x.globalAlpha = .14; x.fill(); x.globalAlpha = 1;
+
+  /* trait */
+  x.beginPath();
+  S.hist.forEach((v,i)=> i ? x.lineTo(i*pas,py(v)) : x.moveTo(0,py(v)));
+  x.strokeStyle = encre; x.lineWidth = 2; x.lineJoin = "round"; x.stroke();
+
+  /* point final accentué */
+  const dernierV = S.hist[S.hist.length-1];
+  x.beginPath(); x.arc(W-1, py(dernierV), 3.5, 0, Math.PI*2);
+  x.fillStyle = encre; x.fill();
+  x.strokeStyle = css.getPropertyValue("--panel").trim(); x.lineWidth = 2; x.stroke();
+}
+
+/* ===================== actions ===================== */
+
+function acheterGen(i){
+  const c = coutGen(i);
+  if(S.cash < c) return;
+  S.cash -= c; S.gens[i] += 1;
+  if(S.gens[i] === 1) noter("Mise en service : " + GENS[i].nom.toLowerCase() + ".");
+  rendreJauges();
+}
+
+function acheterTech(i){
+  const t = TECHS[i];
+  if(ok(t.id) || S.rnd < t.cout) return;
+  S.rnd -= t.cout; S.techs[t.id] = true;
+  if(t.ouvre !== undefined && t.ouvre > S.prod){
+    S.prod = t.ouvre;
+    const p = PRODUITS[S.prod];
+    noter("Nouvelle gamme : " + p.nom.toLowerCase() + " (" + p.an + ").");
+    rendreProduit();
+  }else{
+    noter("Brevet déposé : " + t.nom.toLowerCase() + ".");
+  }
+  rendreProduit();
+  rendreJauges();
+}
+
+function assembler(){
+  const u = forceClic();
+  if(S.comps < u*besoinComps()) return;
+  const gain = encaisser(u);
+  const b = document.createElement("span");
+  b.className = "bulle"; b.textContent = "+" + eur(gain);
+  q("assembler").appendChild(b);
+  setTimeout(()=>b.remove(), 900);
+  rendreJauges();
+}
+
+function acheterComposants(){
+  const lot = lotComps(), c = lot*prixComp();
+  if(S.cash < c) return;
+  S.cash -= c; S.comps += lot;
+  rendreJauges();
+}
+
+let ipoArme = false, ipoTimer = null;
+function ipo(){
+  const act = actionsIPO();
+  if(act <= 0) return;
+  if(!ipoArme){
+    ipoArme = true;
+    q("ipo-t").textContent = "Confirmer : tout repart de zéro";
+    clearTimeout(ipoTimer);
+    ipoTimer = setTimeout(()=>{ ipoArme = false; q("ipo-t").textContent = "Entrer en bourse"; }, 4000);
+    return;
+  }
+  ipoArme = false;
+  q("ipo-t").textContent = "Entrer en bourse";
+  const vie = S.caVie, journal = S.journal.slice(-3);
+  S = partieNeuve(S.actions + act);
+  S.caVie = vie; S.journal = journal;
+  noter("Introduction en bourse : " + act + " actions émises. On recommence, en plus gros.");
+  rendreTout();
+}
+
+function reinitialiser(){
+  S = partieNeuve(0);
+  noter("Nouvelle société fondée dans un garage de banlieue.");
+  rendreTout();
+}
+
+function rendreTout(){
+  rendreProduit();
+  rendreEvenement();
+  rendreJournal();
+  rendreJauges();
+  dessinerCourbe();
+}
+
+/* ===================== câblage ===================== */
+
+q("assembler").addEventListener("click", assembler);
+q("acheter-comp").addEventListener("click", acheterComposants);
+q("ipo").addEventListener("click", ipo);
+q("reset").addEventListener("click", reinitialiser);
+
+q("theme").addEventListener("click", ()=>{
+  const r = document.documentElement;
+  const actuel = r.getAttribute("data-theme");
+  const sombreSysteme = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const cible = actuel ? (actuel === "dark" ? "light" : "dark") : (sombreSysteme ? "light" : "dark");
+  r.setAttribute("data-theme", cible);
+  dessinerCourbe();
+});
+
+window.addEventListener("resize", dessinerCourbe);
+
+/* reprise d'état à travers une republication */
+function demarrer(){
+  charger();
+  construireListes();
+  rendreTout();
+  requestAnimationFrame(boucle);
+}
+const hot = window.claude && window.claude.hot;
+if(hot && typeof hot.snapshot === "function") hot.snapshot(()=>({etat:S}));
+if(hot && typeof hot.ready === "function"){
+  hot.ready(d=>{
+    if(d && d.etat){ S = d.etat; construireListes(); rendreTout(); requestAnimationFrame(boucle); }
+    else demarrer();
+  });
+}else{
+  demarrer();
+}
+
+})();
+</script>
