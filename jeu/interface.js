@@ -285,6 +285,7 @@ function majHUD(){
     + (SC.jeu.stockageOk() ? " · partie sauvegardée dans ce navigateur" : " · sauvegarde indisponible ici");
 
   majMarche();
+  majEquipe();
   majLignes();
 }
 
@@ -301,6 +302,102 @@ function majConglomerat(){
       + n(Math.floor(S.actions)) + ".";
   q("conglo").hidden = pa <= 0;
   if(pa > 0) q("conglo-p").textContent = pa + " part" + (pa>1?"s":"") + " de holding · production et prix ×1,3 par part";
+}
+
+/* ------------------------------ équipe ------------------------------ */
+var signatureEquipe = "";
+
+function majEquipe(){
+  /* candidature en attente */
+  var c = S.candidat;
+  q("candidature").hidden = !c;
+  if(c){
+    var car = SC.jeu.caractere(c.car);
+    q("cand-portrait").src = SC.dessin.portraitURL(c.graine);
+    q("cand-portrait").alt = "Portrait de " + c.prenom + " " + c.nom;
+    q("cand-nom").textContent = c.prenom + " " + c.nom;
+    q("cand-car").textContent = car.nom + " · " + c.poste.toLowerCase();
+    q("cand-eff").textContent = car.eff;
+    q("cand-part").textContent = "demande " + (c.part*100).toLocaleString("fr-FR",{maximumFractionDigits:2}) + " % du chiffre d'affaires";
+  }
+
+  /* la liste n'est reconstruite que lorsque l'effectif change */
+  var sig = S.equipe.map(function(e){ return e.graine; }).join(",");
+  if(sig !== signatureEquipe){ construireEquipe(); signatureEquipe = sig; }
+
+  S.equipe.forEach(function(e,i){
+    var r = refEquipe[i];
+    if(!r) return;
+    var m = Math.max(0, Math.min(100, e.moral));
+    r.barre.style.width = m + "%";
+    r.jauge.classList.toggle("tiede", m < 55 && m >= 25);
+    r.jauge.classList.toggle("froid", m < 25);
+    r.moral.textContent = Math.round(m) + " % de moral";
+    r.part.textContent = (e.part*100).toLocaleString("fr-FR",{maximumFractionDigits:2}) + " % du CA";
+    var cp = SC.jeu.coutPrime(S,i);
+    r.prime.textContent = "Prime " + eur(cp);
+    r.prime.disabled = S.cash < cp || m >= 99;
+    r.augmenter.disabled = m >= 99;
+  });
+
+  var masse = SC.jeu.masseSalariale(S);
+  q("h-equipe").textContent = S.equipe.length + "/" + SC.jeu.placesEquipe(S)
+    + (S.equipe.length ? " · masse salariale " + pct(masse*100) : "");
+  q("j-masse-box").hidden = S.equipe.length === 0;
+  q("j-masse").textContent = pct(masse*100);
+  q("equipe-note").textContent = S.equipe.length === 0
+    ? "Personne à l'atelier. Les candidatures arrivent d'elles-mêmes quand la production tourne."
+    : "Le moral suit vos prix, les arrêts de chaîne et les crises. Sous 45 %, la concurrence commence à débaucher.";
+}
+
+var refEquipe = [];
+function construireEquipe(){
+  var g = q("equipe"); g.textContent = "";
+  refEquipe.length = 0;
+  S.equipe.forEach(function(e,i){
+    var car = SC.jeu.caractere(e.car);
+    var d = document.createElement("div");
+    d.className = "fiche-emp";
+    d.innerHTML =
+      '<img class="portrait" alt="">' +
+      '<div class="emp-txt"><b></b><span class="emp-role"></span><span class="emp-eff"></span></div>' +
+      '<div class="emp-moral"><div class="barre-moral"><i></i></div>' +
+        '<div class="emp-chiffres"><span class="m"></span></div>' +
+        '<div class="emp-chiffres"><span class="s"></span></div></div>' +
+      '<div class="emp-actions"><button type="button" class="prime"></button>' +
+        '<button type="button" class="aug">Augmenter</button></div>';
+    var img = d.querySelector(".portrait");
+    img.src = SC.dessin.portraitURL(e.graine);
+    img.alt = "Portrait de " + e.prenom + " " + e.nom;
+    d.querySelector("b").textContent = e.prenom + " " + e.nom;
+    d.querySelector(".emp-role").textContent = car.nom + " · " + e.poste.toLowerCase();
+    d.querySelector(".emp-eff").textContent = car.eff;
+    var bPrime = d.querySelector(".prime"), bAug = d.querySelector(".aug");
+    bPrime.addEventListener("click", function(){
+      if(SC.jeu.prime(S,i)){ sonAchat(); majHUD(); }
+    });
+    bAug.addEventListener("click", function(){
+      if(SC.jeu.augmenter(S,i)){ sonAchat(); majJournal(); majHUD(); }
+    });
+    g.appendChild(d);
+    refEquipe.push({
+      jauge:d.querySelector(".barre-moral"), barre:d.querySelector(".barre-moral i"),
+      moral:d.querySelector(".m"), part:d.querySelector(".s"),
+      prime:bPrime, augmenter:bAug
+    });
+  });
+}
+
+var minuteurDepart = null;
+function annoncerDeparts(partis){
+  var d = q("depart");
+  d.textContent = partis.map(function(e){ return e.prenom + " " + e.nom; }).join(", ")
+    + (partis.length > 1 ? " quittent l'atelier." : " quitte l'atelier.");
+  d.classList.add("on");
+  clearTimeout(minuteurDepart);
+  minuteurDepart = setTimeout(function(){ d.classList.remove("on"); }, 9000);
+  bip(300, .25, "sawtooth", .05, 140);
+  majJournal();
 }
 
 /* ------------------------------ marché ------------------------------ */
@@ -454,7 +551,10 @@ function confirmationDouble(bouton, libelle, action){
 }
 
 function majTout(reconstruire){
-  if(reconstruire){ construireStations(); construireTechs(); construireHolding(); construireJalons(); }
+  if(reconstruire){
+    construireStations(); construireTechs(); construireHolding(); construireJalons();
+    signatureEquipe = "\u0000";
+  }
   majProduit(); majJournal(); majHUD(); dessinerCourbe();
 }
 
@@ -508,6 +608,12 @@ q("son").addEventListener("click", function(){
   if(audio.actif){ ctxAudio(); bip(880,.08,"square",.04); }
 });
 q("retour-ok").addEventListener("click", function(){ q("voile-retour").hidden = true; });
+q("embaucher").addEventListener("click", function(){
+  if(SC.jeu.embaucher(S)){ sonTech(); majJournal(); majHUD(); }
+});
+q("refuser").addEventListener("click", function(){
+  if(SC.jeu.refuser(S)) majHUD();
+});
 
 document.addEventListener("keydown", function(e){
   if(e.code === "Space" && !/INPUT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)){
@@ -530,6 +636,7 @@ function boucle(now){
   if(res.debutEvenement) montrerEvenement(res.debutEvenement);
   if(res.finEvenement) cacherEvenement();
   if(res.jalons){ sonJalon(); majJournal(); }
+  if(res.partis) annoncerDeparts(res.partis);
 
   if(res.faites > 0){
     horlogeColis += dt;

@@ -32,6 +32,7 @@ function neuve(perm){
     unites:0, ca:0, puissance:0,
     rivaux:SC.CONCURRENTS.map(function(r){ return r.p; }),
     buf:0, ev:null, horlogeEv:24 + Math.random()*26,
+    equipe:[], candidat:null, horlogeCandidat:40,
     hist:new Array(60).fill(0),
     journal:[],
     majSauvegarde:Date.now()
@@ -65,6 +66,28 @@ function demo(){
 function a(S,id){ return !!S.techs[id]; }
 function h(S,id){ return !!S.holding[id]; }
 
+var CARACTERE = SC.CARACTERES.reduce(function(m,c){ m[c.id] = c; return m; }, {});
+
+/* Un employé rend d'autant mieux qu'il a le moral : à plat, il ne donne plus
+   que 40 % de ce qu'il apporte. */
+function multEquipe(S, cle){
+  var m = 1;
+  for(var i=0;i<S.equipe.length;i++){
+    var e = S.equipe[i], c = CARACTERE[e.car];
+    if(!c || !c[cle]) continue;
+    m *= 1 + (c[cle] - 1) * (.4 + .6*Math.max(0, Math.min(100, e.moral))/100);
+  }
+  return m;
+}
+function masseSalariale(S){
+  var t = 0;
+  for(var i=0;i<S.equipe.length;i++) t += S.equipe[i].part;
+  return Math.min(.6, t);
+}
+function placesEquipe(S){
+  return 3 + Math.floor(ereIndex(S)/2) + (h(S,"empire") ? 3 : 0);
+}
+
 /* ----------------------------- multiplicateurs ----------------------------- */
 
 function bonusJalons(S){
@@ -83,6 +106,7 @@ function multProd(S){
   }
   if(h(S,"cadence")) m *= 3;
   if(h(S,"empire")) m *= 2;
+  m *= multEquipe(S, "prod");
   if(S.ev && S.ev.cle === "prod") m *= S.ev.v;
   return m;
 }
@@ -93,11 +117,12 @@ function multPrix(S){
     if(t.prix && S.techs[t.id]) m *= t.prix;
   }
   if(h(S,"empire")) m *= 2;
+  m *= multEquipe(S, "prix");
   if(S.ev && S.ev.cle === "prix") m *= S.ev.v;
   return m;
 }
 function multRnd(S){
-  var m = h(S,"labo") ? 2 : 1;
+  var m = (h(S,"labo") ? 2 : 1) * multEquipe(S, "rnd");
   if(S.ev && S.ev.cle === "rnd") m *= S.ev.v;
   return m;
 }
@@ -106,6 +131,7 @@ function multCompPrix(S){
   if(a(S,"pcb")) m *= 1;                 /* le gain de pcb porte sur la quantité */
   if(a(S,"logi")) m *= .8;
   if(h(S,"integree")) m *= .65;
+  m *= multEquipe(S, "comp");
   if(S.ev && S.ev.cle === "comp") m *= S.ev.v;
   return m;
 }
@@ -148,7 +174,7 @@ function conquete(S){
     var t = SC.TECHS[i];
     if(t.conq && S.techs[t.id]) c *= t.conq;
   }
-  return c;
+  return c * multEquipe(S, "conq");
 }
 function totalStations(S){
   var n = 0;
@@ -246,16 +272,148 @@ function noter(S, txt){
   if(S.journal.length > 8) S.journal.shift();
 }
 
+/* ----------------------------- l'équipe ----------------------------- */
+
+function generationPrenoms(S){
+  var e = ereIndex(S);
+  return SC.PRENOMS[e <= 3 ? 0 : e <= 7 ? 1 : e <= 11 ? 2 : 3];
+}
+function tirer(liste){ return liste[Math.floor(Math.random()*liste.length)]; }
+
+function nouveauCandidat(S){
+  var car = tirer(SC.CARACTERES);
+  var poste = 0;
+  for(var i=0;i<SC.STATIONS.length;i++) if(S.stations[i] > 0) poste = i;
+  return {
+    prenom: tirer(generationPrenoms(S)),
+    nom: tirer(SC.NOMS),
+    car: car.id,
+    poste: SC.STATIONS[poste].nom,
+    part: car.part * (.85 + Math.random()*.4),
+    graine: Math.floor(Math.random()*100000)
+  };
+}
+
+function embaucher(S){
+  if(!S.candidat || S.equipe.length >= placesEquipe(S)) return false;
+  var e = S.candidat;
+  e.moral = 78;
+  e.confort = 0;
+  e.partInitiale = e.part;
+  e.anciennete = 0;
+  S.equipe.push(e);
+  S.candidat = null;
+  S.horlogeCandidat = 90 + Math.random()*90;
+  noter(S, e.prenom + " " + e.nom + " rejoint l'atelier — " + CARACTERE[e.car].nom.toLowerCase() + ".");
+  return true;
+}
+function refuser(S){
+  if(!S.candidat) return false;
+  S.candidat = null;
+  S.horlogeCandidat = 60 + Math.random()*90;
+  return true;
+}
+function augmenter(S,i){
+  var e = S.equipe[i];
+  if(!e) return false;
+  if(e.part >= e.partInitiale * 4) return false;   /* on ne surenchérit pas indéfiniment */
+  e.part = Math.min(e.partInitiale * 4, e.part * 1.22);
+  e.confort = (e.confort || 0) + 26;
+  e.moral = Math.min(100, e.moral + 22);
+  noter(S, e.prenom + " " + e.nom + " est augmenté" + (fem(e) ? "e" : "") + ".");
+  return true;
+}
+function coutPrime(S,i){
+  var e = S.equipe[i];
+  return e ? e.part * cadence(S) * prixUnite(S) * 180 : 0;
+}
+function prime(S,i){
+  var e = S.equipe[i], c = coutPrime(S,i);
+  if(!e || S.cash < c) return false;
+  S.cash -= c;
+  e.confort = (e.confort || 0) + 14;
+  e.moral = Math.min(100, e.moral + 16);
+  return true;
+}
+/* accord du participe : suffit pour le journal */
+function fem(e){ return /[ae]$/.test(e.prenom) && e.prenom !== "Noé"; }
+
+/* Le moral ne s'use pas avec le temps : il converge vers ce que valent les
+   conditions de travail du moment. Brader, laisser la chaîne à l'arrêt ou
+   traverser une crise fait tomber la cible ; un atelier qui tourne la remonte.
+   Une augmentation achète du confort, qui s'estompe en une demi-heure. */
+function cibleMoral(S, bloque, protection){
+  var malus = 0;
+  if(S.marge < 1) malus += (1 - S.marge) * 230;
+  if(bloque) malus += 30;
+  if(S.ev && !S.ev.bon) malus += 12;
+  var bonus = 0;
+  if(partMarche(S) > 50) bonus += 12;
+  if(a(S,"sav")) bonus += 10;
+  if(a(S,"marque")) bonus += 6;
+  return 66 - malus*protection + bonus;
+}
+
+function majEquipe(S, dt, bloque){
+  /* une personne qui aime transmettre amortit les mauvaises passes */
+  var protection = 1;
+  for(var i=0;i<S.equipe.length;i++){
+    var c = CARACTERE[S.equipe[i].car];
+    if(c && c.moral) protection = Math.min(protection, c.moral);
+  }
+  var cible = cibleMoral(S, bloque, protection);
+  var partis = null;
+
+  for(var k=S.equipe.length-1; k>=0; k--){
+    var e = S.equipe[k], car = CARACTERE[e.car];
+    e.anciennete += dt;
+    e.confort = (e.confort || 0) * Math.exp(-dt/1800);
+    var vise = cible + e.confort;
+    if(car.stoique) vise = Math.max(vise, 35);
+    e.moral += (vise - e.moral) * Math.min(1, .0016*dt);
+    if(e.moral > 100) e.moral = 100;
+
+    /* Un moral en berne, et la concurrence appelle : le débauchage guette bien
+       avant que le moral ne touche le fond. */
+    var debauche = false;
+    if(e.moral < 45 && !car.stoique){
+      var risque = (45 - Math.max(0,e.moral))/45 * .00022 * dt;
+      if(Math.random() < risque) debauche = true;
+    }
+    if(debauche || e.moral <= 0){
+      var motif;
+      if(debauche){
+        var rival = SC.CONCURRENTS[Math.floor(Math.random()*SC.CONCURRENTS.length)].nom;
+        motif = "se laisse débaucher par " + rival + ".";
+      }else{
+        motif = S.marge < 1 ? SC.DEPARTS[0] : bloque ? SC.DEPARTS[2 + Math.floor(Math.random()*2)]
+              : SC.DEPARTS[Math.floor(Math.random()*SC.DEPARTS.length)];
+      }
+      noter(S, e.prenom + " " + e.nom + " " + motif);
+      S.equipe.splice(k,1);
+      (partis = partis || []).push(e);
+    }
+  }
+
+  /* candidatures spontanées */
+  if(!S.candidat && S.equipe.length < placesEquipe(S)){
+    S.horlogeCandidat -= dt;
+    if(S.horlogeCandidat <= 0) S.candidat = nouveauCandidat(S);
+  }
+  return partis;
+}
+
 /* ----------------------------- tour de jeu ----------------------------- */
 
 function encaisser(S, u){
   var gain = u * prixUnite(S);
-  S.cash += gain; S.ca += gain; S.caVie += gain;
+  var net = gain * (1 - masseSalariale(S));
+  S.cash += net; S.ca += gain; S.caVie += gain;
   S.comps = Math.max(0, S.comps - u*besoinComps(S));
   S.unites += u;
   S.puissance += u * Math.pow(1 + S.gamme, 1.5) * conquete(S);
   S.rnd += u * produit(S).rnd * multRnd(S);
-  return gain;
+  return net;
 }
 
 /* Les rivaux ne croissent pas dans le vide : ils visent une fraction de VOTRE
@@ -323,6 +481,7 @@ function tick(S, dt){
     if(res.faites > 0) res.gain = encaisser(S, res.faites);
   }
   res.bloque = cad > 0 && S.comps < besoin;
+  res.partis = majEquipe(S, dt, res.bloque);
   res.jalons = verifierJalons(S);
   return res;
 }
@@ -403,6 +562,9 @@ function charger(){
     S.techs    = o.techs || {};
     S.holding  = o.holding || {};
     S.jalons   = o.jalons || {};
+    S.equipe   = Array.isArray(o.equipe) ? o.equipe.filter(function(e){ return e && CARACTERE[e.car]; }) : [];
+    S.equipe.forEach(function(e){ if(!e.partInitiale) e.partInitiale = e.part; if(!e.confort) e.confort = 0; });
+    S.candidat = (o.candidat && CARACTERE[o.candidat.car]) ? o.candidat : null;
     S.marge    = typeof o.marge === "number" ? o.marge : 1;
     S.parts    = o.parts || 0;
     S.ipos     = o.ipos || 0;
@@ -430,6 +592,8 @@ SC.jeu = {
   acheterStation:acheterStation, acheterTech:acheterTech, assembler:assembler,
   acheterComposants:acheterComposants, acheterHolding:acheterHolding,
   ipo:ipo, conglomerat:conglomerat, valeurJalon:valeurJalon,
+  embaucher:embaucher, refuser:refuser, augmenter:augmenter, prime:prime, coutPrime:coutPrime,
+  masseSalariale:masseSalariale, placesEquipe:placesEquipe, cibleMoral:cibleMoral, caractere:function(id){ return CARACTERE[id]; },
   charger:charger, sauver:sauver,
   stockageOk:function(){ return stockageOk; },
   PLAFOND_HORS_LIGNE:PLAFOND_HORS_LIGNE

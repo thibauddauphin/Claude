@@ -18,6 +18,8 @@ function decider(S){
   if(SC.jeu.cadence(S) < 3){
     for(var c=0;c<3*PERIODE_DECISION;c++) SC.jeu.assembler(S);
   }
+  if(S.candidat) SC.jeu.embaucher(S);
+  for(var e=0;e<S.equipe.length;e++) if(S.equipe[e].moral < 35) SC.jeu.augmenter(S,e);
   for(var i=0;i<SC.TECHS.length;i++){
     if(S.techs[SC.TECHS[i].id]) continue;
     if(S.rnd >= SC.jeu.coutTech(S,i)) SC.jeu.acheterTech(S,i);

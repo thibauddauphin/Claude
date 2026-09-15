@@ -17,6 +17,7 @@
       <div class="jauge" id="j-comp-box"><span class="k">Composants</span><span class="v" id="j-comp">—</span></div>
       <div class="jauge"><span class="k">Points R&amp;D</span><span class="v" id="j-rnd">—</span></div>
       <div class="jauge"><span class="k">Part de marché</span><span class="v" id="j-part">—</span></div>
+      <div class="jauge" id="j-masse-box" hidden><span class="k">Masse salariale</span><span class="v" id="j-masse">—</span></div>
       <div class="jauge" id="j-act-box" hidden><span class="k">Actions</span><span class="v" id="j-act">—</span></div>
       <div class="jauge" id="j-part-h-box" hidden><span class="k">Parts de holding</span><span class="v" id="j-parts">—</span></div>
     </div>
@@ -46,6 +47,29 @@
       <div class="scene-bas">
         <span>Cadence <b id="s-cadence">0</b> u/s · sortie <b id="s-sortie">0 €</b>/s</span>
         <span class="indice">Cliquez l'atelier ou pressez Espace</span>
+      </div>
+    </section>
+
+    <section class="bloc" id="bloc-equipe">
+      <h2>Équipe <span class="compt" id="h-equipe"></span></h2>
+      <div class="corps">
+        <div class="depart" id="depart" role="status"></div>
+        <div class="candidature" id="candidature" hidden>
+          <img class="portrait" id="cand-portrait" alt="">
+          <div class="cand-txt">
+            <b id="cand-nom"></b>
+            <span class="cand-car" id="cand-car"></span>
+            <span class="cand-eff" id="cand-eff"></span>
+          </div>
+          <div class="cand-actions">
+            <button class="btn mini" id="embaucher" type="button">
+              <span class="t">Embaucher</span><span class="p" id="cand-part"></span>
+            </button>
+            <button class="btn mini" id="refuser" type="button"><span class="t">Refuser</span></button>
+          </div>
+        </div>
+        <div class="equipe" id="equipe"></div>
+        <p class="note" id="equipe-note"></p>
       </div>
     </section>
 

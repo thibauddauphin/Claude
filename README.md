@@ -27,6 +27,12 @@ prestige et les 34 jalons portent l'ensemble au-delà de la cinquantaine.
   plus vite que l'ère est avancée. Stagner, c'est reculer.
 - **Marché** — événements aléatoires (pénurie de mémoire, banc d'essai élogieux,
   guerre des prix…) et courbe de revenu sur 60 s.
+- **Équipe** — des employés nommés, chacun avec un caractère qui multiplie la
+  production, les prix, la recherche ou l'approvisionnement, et une rémunération
+  prélevée sur le chiffre d'affaires. Leur moral suit vos conditions de travail :
+  casser les prix, laisser la chaîne à l'arrêt ou traverser une crise le fait
+  tomber. Sous 45 %, les concurrents commencent à les débaucher ; à zéro, ils
+  claquent la porte. Une augmentation ou une prime les retient.
 - **Jalons** — trente-quatre succès permanents, chacun accordant un bonus de
   production qui survit à toutes les remises à zéro.
 - **Progression hors ligne** — l'atelier tourne à 60 % de sa cadence en votre
@@ -42,7 +48,7 @@ prestige et les 34 jalons portent l'ensemble au-delà de la cinquantaine.
 |---|---|
 | `jeu/donnees.js`   | Tables : ères, gammes, stations, technologies, événements, concurrents |
 | `jeu/jeu.js`       | Simulation pure — économie, concurrence, sauvegarde. Aucun accès au DOM |
-| `jeu/dessin.js`    | Pixel-art procédurale : décors des huit ères, vignettes de stations, produits, icônes, particules |
+| `jeu/dessin.js`    | Pixel-art procédurale : décors des quinze ères, vignettes de production, produits, icônes, portraits, particules |
 | `jeu/interface.js` | Panneaux, boucle de rendu, son, raccourcis clavier |
 | `jeu/style.css`    | Identité visuelle et thèmes clair / sombre |
 | `outils/calibrage.js`   | Calibre les coûts de recherche pour atteindre une durée cible par ère |
@@ -66,6 +72,11 @@ $ node outils/equilibrage.js
 2040  Le substrat neuromorphique atteinte à 16,02 h     4,18 h     marché 44,5 %
 première partie complète : 22 h
 ```
+
+Le rythme dépend de la façon dont vous menez l'atelier. Trois parties simulées
+avec une équipe bien traitée tombent entre 17 h et 23 h ; une partie menée à
+prix cassés sans jamais augmenter personne perd une dizaine d'employés en huit
+heures et progresse nettement moins vite.
 
 ## Détails techniques
 

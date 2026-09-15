@@ -71,65 +71,65 @@ SC.STATIONS = [
 
 /* ere : rangée d'affichage · ouvre : gamme débloquée · prod/prix : multiplicateurs · conq : conquête */
 SC.TECHS = [
-  {id:"fer",        ere:0,  nom:"Fer thermorégulé",          cout:15,        eff:"Assemblage manuel ×4",            icone:"fer"},
-  {id:"pcb",        ere:0,  nom:"Circuit imprimé double face",cout:61,      eff:"−20 % de composants par unité",   icone:"carte"},
-  {id:"mos",        ere:0,  nom:"Transistor MOS",            cout:150,       eff:"Micro familial · production ×1,25", icone:"puce", ouvre:1, prod:1.25},
+  {id:"fer",        ere:0,  nom:"Fer thermorégulé",          cout:13,        eff:"Assemblage manuel ×4",            icone:"fer"},
+  {id:"pcb",        ere:0,  nom:"Circuit imprimé double face",cout:54,      eff:"−20 % de composants par unité",   icone:"carte"},
+  {id:"mos",        ere:0,  nom:"Transistor MOS",            cout:130,       eff:"Micro familial · production ×1,25", icone:"puce", ouvre:1, prod:1.25},
 
-  {id:"appro",      ere:1,  nom:"Approvisionnement automatique", cout:860,  eff:"Rachète les composants toute seule", icone:"carton"},
-  {id:"clavier",    ere:1,  nom:"Clavier mécanique",         cout:2000,      eff:"Prix ×1,2",                       icone:"clavier", prix:1.2},
-  {id:"v23",        ere:1,  nom:"Modem V.23",                cout:4300,      eff:"Terminal télématique",            icone:"modem",  ouvre:2},
+  {id:"appro",      ere:1,  nom:"Approvisionnement automatique", cout:1200,  eff:"Rachète les composants toute seule", icone:"carton"},
+  {id:"clavier",    ere:1,  nom:"Clavier mécanique",         cout:2900,      eff:"Prix ×1,2",                       icone:"clavier", prix:1.2},
+  {id:"v23",        ere:1,  nom:"Modem V.23",                cout:6200,      eff:"Terminal télématique",            icone:"modem",  ouvre:2},
 
-  {id:"annuaire",   ere:2,  nom:"Annuaire électronique",     cout:1300000,     eff:"Conquête du marché ×1,2",         icone:"livre",  conq:1.2},
-  {id:"logi",       ere:2,  nom:"Entrepôt central",          cout:2300000,     eff:"−20 % de composants",             icone:"palette"},
-  {id:"bus16",      ere:2,  nom:"Bus 16 bits",               cout:4500000,     eff:"Compatible PC · production ×1,3", icone:"bus",    ouvre:3, prod:1.3},
+  {id:"annuaire",   ere:2,  nom:"Annuaire électronique",     cout:1900000,     eff:"Conquête du marché ×1,2",         icone:"livre",  conq:1.2},
+  {id:"logi",       ere:2,  nom:"Entrepôt central",          cout:3400000,     eff:"−20 % de composants",             icone:"palette"},
+  {id:"bus16",      ere:2,  nom:"Bus 16 bits",               cout:6700000,     eff:"Compatible PC · production ×1,3", icone:"bus",    ouvre:3, prod:1.3},
 
-  {id:"gui",        ere:3,  nom:"Interface graphique",       cout:1700000000,     eff:"Prix ×1,3",                       icone:"souris", prix:1.3},
-  {id:"lan",        ere:3,  nom:"Réseau local",              cout:3300000000,    eff:"Production ×1,4",                 icone:"reseau", prod:1.4},
-  {id:"lcd",        ere:3,  nom:"Écran à cristaux liquides", cout:6200000000,    eff:"Portable à écran LCD",            icone:"ecran",  ouvre:4},
+  {id:"gui",        ere:3,  nom:"Interface graphique",       cout:2200000000,     eff:"Prix ×1,3",                       icone:"souris", prix:1.3},
+  {id:"lan",        ere:3,  nom:"Réseau local",              cout:4200000000,    eff:"Production ×1,4",                 icone:"reseau", prod:1.4},
+  {id:"lcd",        ere:3,  nom:"Écran à cristaux liquides", cout:8000000000,    eff:"Portable à écran LCD",            icone:"ecran",  ouvre:4},
 
-  {id:"lithium",    ere:4,  nom:"Batterie lithium-ion",      cout:42000000000,    eff:"Prix ×1,25",                      icone:"pile",   prix:1.25},
-  {id:"sav",        ere:4,  nom:"Service après-vente",       cout:74000000000,   eff:"Crises de marché deux fois moins dures", icone:"casque"},
-  {id:"cdrom",      ere:4,  nom:"Lecteur de disques optiques", cout:130000000000, eff:"Station multimédia",              icone:"disque", ouvre:5},
+  {id:"lithium",    ere:4,  nom:"Batterie lithium-ion",      cout:52000000000,    eff:"Prix ×1,25",                      icone:"pile",   prix:1.25},
+  {id:"sav",        ere:4,  nom:"Service après-vente",       cout:91000000000,   eff:"Crises de marché deux fois moins dures", icone:"casque"},
+  {id:"cdrom",      ere:4,  nom:"Lecteur de disques optiques", cout:160000000000, eff:"Station multimédia",              icone:"disque", ouvre:5},
 
-  {id:"accel3d",    ere:5,  nom:"Accélérateur 3D",           cout:230000000000,   eff:"Production ×1,5",                 icone:"gpu",    prod:1.5},
-  {id:"marque",     ere:5,  nom:"Campagne de marque",        cout:410000000000,   eff:"Prix ×1,5 · conquête ×1,25",      icone:"megaphone", prix:1.5, conq:1.25},
-  {id:"tcpip",      ere:5,  nom:"Pile TCP/IP",               cout:700000000000,  eff:"Serveur web 1U",                  icone:"prise",  ouvre:6},
+  {id:"accel3d",    ere:5,  nom:"Accélérateur 3D",           cout:250000000000,   eff:"Production ×1,5",                 icone:"gpu",    prod:1.5},
+  {id:"marque",     ere:5,  nom:"Campagne de marque",        cout:440000000000,   eff:"Prix ×1,5 · conquête ×1,25",      icone:"megaphone", prix:1.5, conq:1.25},
+  {id:"tcpip",      ere:5,  nom:"Pile TCP/IP",               cout:750000000000,  eff:"Serveur web 1U",                  icone:"prise",  ouvre:6},
 
-  {id:"colo",       ere:6,  nom:"Hébergement en colocation", cout:1100000000000,  eff:"Production ×1,4",                 icone:"baie",   prod:1.4},
-  {id:"ssl",        ere:6,  nom:"Chiffrement de bout en bout", cout:2000000000000,eff:"Prix ×1,3",                       icone:"cadenas",prix:1.3},
-  {id:"cotation",   ere:6,  nom:"Cotation au nouveau marché",cout:3600000000000,  eff:"Baie d'hébergement",              icone:"courbe", ouvre:7},
+  {id:"colo",       ere:6,  nom:"Hébergement en colocation", cout:1400000000000,  eff:"Production ×1,4",                 icone:"baie",   prod:1.4},
+  {id:"ssl",        ere:6,  nom:"Chiffrement de bout en bout", cout:2600000000000,eff:"Prix ×1,3",                       icone:"cadenas",prix:1.3},
+  {id:"cotation",   ere:6,  nom:"Cotation au nouveau marché",cout:4700000000000,  eff:"Baie d'hébergement",              icone:"courbe", ouvre:7},
 
-  {id:"restruct",   ere:7,  nom:"Plan de restructuration",   cout:4500000000000, eff:"Moyens de production −15 %",      icone:"ciseaux"},
-  {id:"fibre",      ere:7,  nom:"Fibre optique",             cout:8300000000000, eff:"Production ×1,5",                 icone:"fibre",  prod:1.5},
-  {id:"degroupage", ere:7,  nom:"Dégroupage de la boucle locale", cout:15000000000000, eff:"Box haut débit",             icone:"prise",  ouvre:8},
+  {id:"restruct",   ere:7,  nom:"Plan de restructuration",   cout:5400000000000, eff:"Moyens de production −15 %",      icone:"ciseaux"},
+  {id:"fibre",      ere:7,  nom:"Fibre optique",             cout:10000000000000, eff:"Production ×1,5",                 icone:"fibre",  prod:1.5},
+  {id:"degroupage", ere:7,  nom:"Dégroupage de la boucle locale", cout:18000000000000, eff:"Box haut débit",             icone:"prise",  ouvre:8},
 
-  {id:"cdn",        ere:8,  nom:"Réseau de distribution",    cout:17000000000000, eff:"Conquête du marché ×1,3",         icone:"globe",  conq:1.3},
-  {id:"wifi",       ere:8,  nom:"Puce sans fil",             cout:30000000000000,eff:"Prix ×1,3",                       icone:"onde",   prix:1.3},
-  {id:"arm",        ere:8,  nom:"Puce à faible consommation",cout:52000000000000,eff:"Téléphone à dalle tactile",       icone:"puce2",  ouvre:9},
+  {id:"cdn",        ere:8,  nom:"Réseau de distribution",    cout:21000000000000, eff:"Conquête du marché ×1,3",         icone:"globe",  conq:1.3},
+  {id:"wifi",       ere:8,  nom:"Puce sans fil",             cout:36000000000000,eff:"Prix ×1,3",                       icone:"onde",   prix:1.3},
+  {id:"arm",        ere:8,  nom:"Puce à faible consommation",cout:63000000000000,eff:"Téléphone à dalle tactile",       icone:"puce2",  ouvre:9},
 
-  {id:"boutique",   ere:9,  nom:"Boutique d'applications",   cout:56000000000000,eff:"Prix ×1,6",                       icone:"sac",    prix:1.6},
-  {id:"capacitif",  ere:9,  nom:"Dalle capacitive multipoint",cout:100000000000000,eff:"Production ×1,5",                icone:"doigt",  prod:1.5},
-  {id:"virtu",      ere:9,  nom:"Virtualisation",            cout:180000000000000, eff:"Offre cloud",                   icone:"nuage",  ouvre:10},
+  {id:"boutique",   ere:9,  nom:"Boutique d'applications",   cout:69000000000000,eff:"Prix ×1,6",                       icone:"sac",    prix:1.6},
+  {id:"capacitif",  ere:9,  nom:"Dalle capacitive multipoint",cout:120000000000000,eff:"Production ×1,5",                icone:"doigt",  prod:1.5},
+  {id:"virtu",      ere:9,  nom:"Virtualisation",            cout:220000000000000, eff:"Offre cloud",                   icone:"nuage",  ouvre:10},
 
-  {id:"conteneur",  ere:10, nom:"Conteneurisation",          cout:290000000000000, eff:"Production ×1,6",               icone:"boite",  prod:1.6},
-  {id:"edge",       ere:10, nom:"Calcul en périphérie",      cout:530000000000000, eff:"Prix ×1,4",                     icone:"antenne",prix:1.4},
-  {id:"lpwan",      ere:10, nom:"Radio basse consommation",  cout:940000000000000, eff:"Capteur connecté",              icone:"onde",   ouvre:11},
+  {id:"conteneur",  ere:10, nom:"Conteneurisation",          cout:370000000000000, eff:"Production ×1,6",               icone:"boite",  prod:1.6},
+  {id:"edge",       ere:10, nom:"Calcul en périphérie",      cout:680000000000000, eff:"Prix ×1,4",                     icone:"antenne",prix:1.4},
+  {id:"lpwan",      ere:10, nom:"Radio basse consommation",  cout:1200000000000000, eff:"Capteur connecté",              icone:"onde",   ouvre:11},
 
-  {id:"flotte",     ere:11, nom:"Gestion de flotte",         cout:1600000000000000, eff:"Production ×1,5",              icone:"carte2", prod:1.5},
-  {id:"gpu",        ere:11, nom:"Calcul parallèle",          cout:2900000000000000, eff:"Production ×2",                icone:"gpu",    prod:2},
-  {id:"nn",         ere:11, nom:"Réseaux de neurones",       cout:5300000000000000, eff:"Grappe d'accélérateurs",       icone:"neurone",ouvre:12},
+  {id:"flotte",     ere:11, nom:"Gestion de flotte",         cout:2100000000000000, eff:"Production ×1,5",              icone:"carte2", prod:1.5},
+  {id:"gpu",        ere:11, nom:"Calcul parallèle",          cout:3800000000000000, eff:"Production ×2",                icone:"gpu",    prod:2},
+  {id:"nn",         ere:11, nom:"Réseaux de neurones",       cout:7000000000000000, eff:"Grappe d'accélérateurs",       icone:"neurone",ouvre:12},
 
-  {id:"inference",  ere:12, nom:"Optimisation de l'inférence", cout:9300000000000000, eff:"Prix ×1,5",                  icone:"eclair", prix:1.5},
-  {id:"immersion",  ere:12, nom:"Refroidissement immersif",  cout:17000000000000000, eff:"Production ×1,7",             icone:"goutte", prod:1.7},
-  {id:"qubit",      ere:12, nom:"Qubit supraconducteur",     cout:29000000000000000, eff:"Calculateur quantique",       icone:"atome",  ouvre:13},
+  {id:"inference",  ere:12, nom:"Optimisation de l'inférence", cout:13000000000000000, eff:"Prix ×1,5",                  icone:"eclair", prix:1.5},
+  {id:"immersion",  ere:12, nom:"Refroidissement immersif",  cout:24000000000000000, eff:"Production ×1,7",             icone:"goutte", prod:1.7},
+  {id:"qubit",      ere:12, nom:"Qubit supraconducteur",     cout:40000000000000000, eff:"Calculateur quantique",       icone:"atome",  ouvre:13},
 
-  {id:"correction", ere:13, nom:"Correction d'erreurs",      cout:58000000000000000, eff:"Production ×2",               icone:"bouclier", prod:2},
-  {id:"cryo",       ere:13, nom:"Cryogénie industrielle",    cout:100000000000000000, eff:"Prix ×1,6",                   icone:"flocon", prix:1.6},
-  {id:"memristor",  ere:13, nom:"Memristor",                 cout:190000000000000000, eff:"Substrat neuromorphique",    icone:"spirale",ouvre:14},
+  {id:"correction", ere:13, nom:"Correction d'erreurs",      cout:82000000000000000, eff:"Production ×2",               icone:"bouclier", prod:2},
+  {id:"cryo",       ere:13, nom:"Cryogénie industrielle",    cout:140000000000000000, eff:"Prix ×1,6",                   icone:"flocon", prix:1.6},
+  {id:"memristor",  ere:13, nom:"Memristor",                 cout:270000000000000000, eff:"Substrat neuromorphique",    icone:"spirale",ouvre:14},
 
-  {id:"plasticite", ere:14, nom:"Plasticité synthétique",    cout:350000000000000000, eff:"Production ×2,2",            icone:"neurone",prod:2.2},
-  {id:"autoconcep", ere:14, nom:"Conception autonome",       cout:630000000000000000, eff:"Prix ×1,8",                  icone:"oeil",   prix:1.8},
-  {id:"recursif",   ere:14, nom:"Auto-amélioration",         cout:1100000000000000000, eff:"Production ×3",              icone:"spirale",prod:3}
+  {id:"plasticite", ere:14, nom:"Plasticité synthétique",    cout:530000000000000000, eff:"Production ×2,2",            icone:"neurone",prod:2.2},
+  {id:"autoconcep", ere:14, nom:"Conception autonome",       cout:960000000000000000, eff:"Prix ×1,8",                  icone:"oeil",   prix:1.8},
+  {id:"recursif",   ere:14, nom:"Auto-amélioration",         cout:1700000000000000000, eff:"Production ×3",              icone:"spirale",prod:3}
 ];
 
 /* cle : prix · prod · rnd · comp — v : multiplicateur pendant la durée */
@@ -213,4 +213,42 @@ SC.HOLDING = [
   {id:"monopole", nom:"Position installée",  cout:15, eff:"La concurrence croît 40 % moins vite."},
   {id:"cadence",  nom:"Doctrine de la cadence", cout:20, eff:"Production ×3."},
   {id:"empire",   nom:"Empire industriel",   cout:26, eff:"Production et prix ×2, et une action offerte par minute."}
+];
+
+/* Prénoms par génération : l'atelier recrute dans son époque. */
+SC.PRENOMS = [
+  ["Jean-Claude","Michèle","Patrick","Martine","Gérard","Chantal","Bernard","Nicole","Alain","Dominique","Roland","Françoise"],
+  ["Sébastien","Aurélie","Nicolas","Céline","Julien","Sandrine","Fabrice","Nathalie","Karim","Stéphanie","Laurent","Valérie"],
+  ["Thomas","Marion","Kévin","Laura","Mehdi","Élodie","Anthony","Camille","Youssef","Charlotte","Maxime","Inès"],
+  ["Lucas","Emma","Nathan","Léa","Rayan","Jade","Enzo","Louise","Ibrahim","Alice","Noé","Anaïs"]
+];
+SC.NOMS = [
+  "Bertrand","Lemoine","Fontaine","Vasseur","Marchand","Perrot","Nguyen","Lopes","Benali","Charrier",
+  "Delaunay","Ruiz","Kowalski","Mercier","Hamon","Tessier","Bonnet","Rey","Sow","Andrieu",
+  "Ferreira","Chevalier","Lagarde","Moreau","Dufour","Barbier","Guillon","Rousset"
+];
+
+/* Caractères : ce que la personne apporte, et ce qu'elle coûte.
+   part : sa rémunération, en fraction du chiffre d'affaires. */
+SC.CARACTERES = [
+  {id:"soudure",     nom:"Doigts d'or",            eff:"Production +12 %",                        prod:1.12, part:0.018},
+  {id:"nego",        nom:"Négociation née",        eff:"Composants −12 %",                        comp:.88,  part:0.016},
+  {id:"systeme",     nom:"Tête de système",        eff:"Points R&D +20 %",                        rnd:1.20,  part:0.02},
+  {id:"commerce",    nom:"Sens du commerce",       eff:"Prix de vente +9 %",                      prix:1.09, part:0.02},
+  {id:"logistique",  nom:"Méthode logistique",     eff:"Production +7 %, composants −6 %",        prod:1.07, comp:.94, part:0.018},
+  {id:"perfection",  nom:"Perfectionnisme",        eff:"Prix +14 %, production −5 %",             prix:1.14, prod:.95, part:0.018},
+  {id:"formation",   nom:"Goût de transmettre",    eff:"L'usure du moral de l'équipe est divisée par deux", moral:.5, part:0.016},
+  {id:"autodidacte", nom:"Autodidacte",            eff:"Points R&D +12 %, production +5 %",       rnd:1.12,  prod:1.05, part:0.022},
+  {id:"endurance",   nom:"Increvable",             eff:"Production +9 %, ne réclame jamais rien", prod:1.09, stoique:true, part:0.014},
+  {id:"influence",   nom:"Carnet d'adresses",      eff:"Conquête du marché +15 %",                conq:1.15, part:0.018}
+];
+
+/* Motifs de départ, tirés selon les conditions du moment. */
+SC.DEPARTS = [
+  "a rendu son tablier : « on brade, je ne suis plus payé à ma valeur ».",
+  "part chez Béta-Tronic, qui proposait mieux.",
+  "claque la porte après trois semaines de chaîne à l'arrêt.",
+  "démissionne : « je passe mes journées à attendre les composants ».",
+  "s'en va monter son propre atelier.",
+  "prend la porte sans un mot. Le badge est resté sur l'établi."
 ];
