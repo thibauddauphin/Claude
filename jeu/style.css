@@ -93,7 +93,7 @@ img{max-width:100%}
 .jauge .k{font-family:var(--f-mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--screen-dim);display:block}
 .jauge .v{font-family:var(--f-mono);font-weight:600;font-size:16px;color:var(--screen-ink);font-variant-numeric:tabular-nums;display:block;line-height:1.25}
 .jauge.alerte .v{color:#ff6a52}
-.outils{display:flex;gap:6px}
+.outils{display:flex;gap:6px;margin-left:auto}
 .outil{
   background:var(--panel-2);border:1px solid var(--line-hard);border-radius:2px;
   width:32px;height:32px;cursor:pointer;font-size:14px;line-height:1;
@@ -103,18 +103,19 @@ img{max-width:100%}
 
 /* ---------------- grille ---------------- */
 .plateau{
-  max-width:1320px;margin:0 auto;
+  max-width:1360px;margin:0 auto;
   padding-block:16px;padding-left:16px;padding-right:16px;
-  display:grid;gap:16px;grid-template-columns:1fr;align-items:start;
+  display:flex;flex-direction:column;gap:16px;align-items:stretch;
 }
-@media (min-width:920px){ .plateau{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+.colonne{display:flex;flex-direction:column;gap:16px;min-width:0}
+.colonne-scene{order:1}
+.colonne-gauche{order:2}
+.colonne-droite{order:3}
 @media (min-width:1240px){
-  .plateau{grid-template-columns:330px minmax(0,1fr) 340px}
-  #bloc-scene   {grid-column:2;grid-row:1}
-  #bloc-atelier {grid-column:1;grid-row:1}
-  #bloc-stations{grid-column:2;grid-row:2}
-  #bloc-rnd     {grid-column:3;grid-row:1 / span 2}
-  #bloc-marche  {grid-column:1;grid-row:2}
+  .plateau{flex-direction:row;align-items:flex-start}
+  .colonne-gauche{order:1;flex:0 0 330px}
+  .colonne-scene {order:2;flex:1 1 auto}
+  .colonne-droite{order:3;flex:0 0 340px}
 }
 
 .bloc{
@@ -305,3 +306,57 @@ img{max-width:100%}
   font-family:var(--f-mono);font-size:11px;font-weight:600;color:var(--ink-2);
 }
 .ligne.possede .palier{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+
+/* ---------------- jalons ---------------- */
+.jalons{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:5px;
+        max-height:296px;overflow-y:auto;padding-right:2px}
+.jalon{
+  border:1px solid var(--line);border-radius:2px;padding:5px 7px;
+  font-size:11.5px;line-height:1.25;opacity:.45;
+}
+.jalon b{display:block;font-weight:600;font-size:11.5px}
+.jalon span{font-family:var(--f-mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.04em}
+.jalon.acquis{opacity:1;border-left:4px solid var(--accent);background:var(--panel-2)}
+.jalon.acquis span{color:var(--accent)}
+
+/* ---------------- conglomérat ---------------- */
+.note{margin:0;font-size:12px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+.separateur{
+  font-family:var(--f-mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);padding:6px 2px 2px;border-top:1px solid var(--line);margin-top:2px;
+  display:flex;justify-content:space-between;
+}
+.separateur:first-child{border-top:0;margin-top:0;padding-top:0}
+
+/* ---------------- retour hors ligne ---------------- */
+.voile{
+  position:fixed;inset:0;z-index:60;
+  background:rgba(20,16,10,.62);
+  display:grid;place-items:center;padding:20px;
+}
+.carte-retour{
+  background:var(--panel);border:1px solid var(--line-hard);border-radius:3px;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.6);
+  padding:18px 20px 20px;max-width:380px;width:100%;
+  display:flex;flex-direction:column;gap:10px;
+}
+.carte-retour h3{
+  margin:0;font-family:var(--f-display);font-weight:700;font-size:21px;text-wrap:balance;
+}
+.carte-retour p{margin:0;font-size:13px;color:var(--ink-2)}
+.retour-chiffres{
+  display:flex;gap:18px;padding:10px 0;border-block:1px dashed var(--line-hard);
+  font-family:var(--f-mono);
+}
+.retour-chiffres span{display:flex;flex-direction:column;gap:1px}
+.retour-chiffres i{font-style:normal;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.retour-chiffres b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--accent)}
+.carte-retour .btn{align-items:center;text-align:center}
+
+/* les longues listes défilent dans leur panneau plutôt que d'étirer la colonne */
+@media (min-width:1240px){
+  #bloc-rnd .corps{max-height:calc(100vh - 148px);overflow-y:auto}
+  #bloc-stations .corps{max-height:560px;overflow-y:auto}
+}

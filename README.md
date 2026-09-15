@@ -8,25 +8,33 @@ Ouvrez `jeu/index.html` dans un navigateur. Les seules ressources distantes sont
 les fontes IBM Plex servies par Google Fonts ; sans réseau, la page bascule sur
 les fontes système.
 
+Une première partie complète demande une vingtaine d'heures ; les deux niveaux de
+prestige et les 34 jalons portent l'ensemble au-delà de la cinquantaine.
+
 ## Boucle de jeu
 
 - **Atelier** — assemblez à la main (clic sur la scène ou barre d'espace), ou
   laissez produire. Chaque unité consomme des composants : sans stock, la chaîne
   s'arrête net.
-- **Moyens de production** — huit paliers, de l'établi de garage à
-  l'ordonnanceur autonome. Coût × 1,16 par exemplaire acheté.
-- **Recherche & développement** — quinze technologies. Sept ouvrent une nouvelle
-  gamme et font basculer l'ère, les autres multiplient production, prix ou
-  approvisionnement.
+- **Moyens de production** — douze paliers, de l'établi de garage à l'essaim
+  d'usines noires. Coût × 1,19 par exemplaire acheté.
+- **Recherche & développement** — quarante-cinq technologies réparties sur les
+  quinze ères. Quatorze ouvrent une nouvelle gamme et font basculer l'époque, les
+  autres multiplient production, prix, conquête ou approvisionnement.
 - **Politique de prix** — un curseur arbitre entre recette et conquête : vendre
   cher rapporte davantage mais ralentit la prise de parts de marché.
 - **Concurrence** — quatre sociétés rivales progressent en continu, d'autant
   plus vite que l'ère est avancée. Stagner, c'est reculer.
 - **Marché** — événements aléatoires (pénurie de mémoire, banc d'essai élogieux,
   guerre des prix…) et courbe de revenu sur 60 s.
-- **Introduction en bourse** — à partir de 25 M€ de chiffre d'affaires, tout
-  repart de zéro contre des actions : + 8 % de production et de prix par action,
-  définitivement.
+- **Jalons** — trente-quatre succès permanents, chacun accordant un bonus de
+  production qui survit à toutes les remises à zéro.
+- **Progression hors ligne** — l'atelier tourne à 60 % de sa cadence en votre
+  absence, jusqu'à douze heures d'affilée. Les concurrents avancent aussi.
+- **Introduction en bourse** — premier niveau de prestige : tout repart de zéro
+  contre des actions, + 8 % de production et de prix par action.
+- **Conglomérat** — second niveau : à 150 actions, on solde le groupe en parts de
+  holding (× 1,3 chacune) qui ouvrent huit méta-améliorations permanentes.
 
 ## Organisation du code
 
@@ -37,8 +45,27 @@ les fontes système.
 | `jeu/dessin.js`    | Pixel-art procédurale : décors des huit ères, vignettes de stations, produits, icônes, particules |
 | `jeu/interface.js` | Panneaux, boucle de rendu, son, raccourcis clavier |
 | `jeu/style.css`    | Identité visuelle et thèmes clair / sombre |
+| `outils/calibrage.js`   | Calibre les coûts de recherche pour atteindre une durée cible par ère |
+| `outils/equilibrage.js` | Joue une partie sans interface et rend compte du rythme obtenu |
 
 `maquette-initiale.html` conserve la maquette d'origine, en un seul fichier.
+
+## Équilibrage
+
+Le rythme n'est pas réglé à l'instinct. `outils/calibrage.js` fait jouer un joueur
+simulé, mesure la durée réelle de chaque ère et corrige le coût des technologies
+jusqu'à converger sur une cible — une progression géométrique de 5 minutes pour
+1975 à un peu plus de cinq heures pour 2040. `outils/equilibrage.js` rejoue
+ensuite la partie et publie le tableau de contrôle :
+
+```
+$ node outils/equilibrage.js
+1975  Le garage                  atteinte à     1 s                marché  0,2 %
+1982  La télématique             atteinte à  12,4 min   6,6 min    marché 76,6 %
+2000  L'éclatement de la bulle   atteinte à  1,82 h    32,6 min    marché 47,7 %
+2040  Le substrat neuromorphique atteinte à 16,02 h     4,18 h     marché 44,5 %
+première partie complète : 22 h
+```
 
 ## Détails techniques
 

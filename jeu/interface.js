@@ -7,20 +7,34 @@ var S = SC.jeu.charger() || SC.jeu.demo();
 
 /* ------------------------------ formats ------------------------------ */
 var PALIERS = [["Md",1e9],["M",1e6],["k",1e3]];
+var EXPOSANTS = ["⁰","¹","²","³","⁴","⁵","⁶","⁷","⁸","⁹"];
+function exposant(e){
+  return String(e).split("").map(function(c){ return c === "-" ? "⁻" : EXPOSANTS[+c]; }).join("");
+}
 function n(v){
-  if(!isFinite(v)) return "—";
+  if(!isFinite(v)) return "∞";
   var s = v < 0 ? "−" : ""; v = Math.abs(v);
-  for(var i=0;i<PALIERS.length;i++){
-    if(v >= PALIERS[i][1]){
-      var x = v/PALIERS[i][1];
-      return s + x.toLocaleString("fr-FR",{maximumFractionDigits: x<10?2:1}) + " " + PALIERS[i][0];
+  if(v < 1000) return s + (v >= 100 ? Math.round(v) : Math.round(v*10)/10).toLocaleString("fr-FR");
+  if(v < 1e12){
+    for(var i=0;i<PALIERS.length;i++){
+      if(v >= PALIERS[i][1]){
+        var x = v/PALIERS[i][1];
+        return s + x.toLocaleString("fr-FR",{maximumFractionDigits: x<10?2:1}) + " " + PALIERS[i][0];
+      }
     }
   }
-  if(v >= 100) return s + Math.round(v).toLocaleString("fr-FR");
-  return s + (Math.round(v*10)/10).toLocaleString("fr-FR");
+  /* au-delà du millier de milliards, la notation scientifique reste lisible */
+  var e = Math.floor(Math.log10(v));
+  return s + (v/Math.pow(10,e)).toLocaleString("fr-FR",{maximumFractionDigits:2}) + " ×10" + exposant(e);
 }
 function eur(v){ return n(v) + " €"; }
 function pct(v){ return v.toLocaleString("fr-FR",{maximumFractionDigits:1}) + " %"; }
+function duree(s){
+  if(s < 90) return Math.round(s) + " secondes";
+  if(s < 5400) return Math.round(s/60) + " minutes";
+  var hh = Math.floor(s/3600), mm = Math.round((s%3600)/60);
+  return hh + " h" + (mm ? " " + String(mm).padStart(2,"0") : "");
+}
 
 /* ------------------------------ son ------------------------------ */
 var audio = {actif:false, ctx:null};
@@ -31,110 +45,196 @@ function ctxAudio(){
   }
   return audio.ctx;
 }
-function bip(freq, duree, forme, vol, vers){
+function bip(freq, dur, forme, vol, vers){
   if(!audio.actif) return;
   var c = ctxAudio(); if(!c) return;
   if(c.state === "suspended") c.resume();
   var o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime;
   o.type = forme || "square";
   o.frequency.setValueAtTime(freq, t0);
-  if(vers) o.frequency.exponentialRampToValueAtTime(vers, t0 + duree);
+  if(vers) o.frequency.exponentialRampToValueAtTime(vers, t0 + dur);
   g.gain.setValueAtTime(.0001, t0);
   g.gain.exponentialRampToValueAtTime(vol || .05, t0 + .008);
-  g.gain.exponentialRampToValueAtTime(.0001, t0 + duree);
+  g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
   o.connect(g); g.connect(c.destination);
-  o.start(t0); o.stop(t0 + duree + .02);
+  o.start(t0); o.stop(t0 + dur + .02);
 }
-var sonAssemblage = function(){ bip(760, .06, "square", .045); };
-var sonAchat      = function(){ bip(420, .07, "square", .05); setTimeout(function(){ bip(630,.09,"square",.05); }, 60); };
-var sonTech       = function(){ [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){ bip(f,.11,"triangle",.05); }, i*70); }); };
-var sonEvenement  = function(bon){ bip(bon?520:180, .3, bon?"triangle":"sawtooth", .05, bon?880:110); };
+function sonAssemblage(){ bip(760, .06, "square", .045); }
+function sonAchat(){ bip(420,.07,"square",.05); setTimeout(function(){ bip(630,.09,"square",.05); }, 60); }
+function sonTech(){ [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){ bip(f,.11,"triangle",.05); }, i*70); }); }
+function sonEvenement(bon){ bip(bon?520:180, .3, bon?"triangle":"sawtooth", .05, bon?880:110); }
+function sonJalon(){ [784,988,1319].forEach(function(f,i){ setTimeout(function(){ bip(f,.13,"triangle",.045); }, i*90); }); }
 
 /* ------------------------------ scène ------------------------------ */
 var toile = q("scene"), ctx = toile.getContext("2d");
 var vignette = q("vignette");
 
 /* ------------------------------ listes ------------------------------ */
-var refStations = [], refTechs = [];
+var refStations = [], refTechs = [], refHolding = [], refJalons = [];
+var visibleStations = 0, visibleTechs = 0;
 
-function construireListes(){
+function stationsVisibles(){
+  var dernier = -1;
+  for(var i=0;i<SC.STATIONS.length;i++) if(S.stations[i] > 0) dernier = i;
+  return Math.min(SC.STATIONS.length, Math.max(3, dernier + 3));
+}
+function techsVisibles(){
+  var e = SC.jeu.ereIndex(S), k = 0;
+  for(var i=0;i<SC.TECHS.length;i++) if(SC.TECHS[i].ere <= e + 1) k = i + 1;
+  return k;
+}
+
+function construireStations(){
   var ls = q("liste-stations"); ls.textContent = "";
   refStations.length = 0;
-  SC.STATIONS.forEach(function(st,i){
-    var b = document.createElement("button");
-    b.type = "button"; b.className = "ligne";
-    b.innerHTML = '<span class="palier">' + (i+1) + '</span>'
-                + '<span><span class="nom"></span><span class="det"></span></span>'
-                + '<span class="droite"><span class="prix"></span><span class="qte"></span></span>';
-    b.addEventListener("click", function(){
-      if(SC.jeu.acheterStation(S,i)){ sonAchat(); majTout(); flashLigne(b); }
-    });
-    ls.appendChild(b);
-    refStations.push({b:b, nom:b.querySelector(".nom"), det:b.querySelector(".det"),
-                      prix:b.querySelector(".prix"), qte:b.querySelector(".qte")});
-  });
+  visibleStations = stationsVisibles();
+  for(var i=0;i<visibleStations;i++){
+    (function(i){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "ligne";
+      b.innerHTML = '<span class="palier">' + (i+1) + '</span>'
+                  + '<span><span class="nom"></span><span class="det"></span></span>'
+                  + '<span class="droite"><span class="prix"></span><span class="qte"></span></span>';
+      b.addEventListener("click", function(){
+        if(SC.jeu.acheterStation(S,i)){ sonAchat(); flash(b); majTout(); }
+      });
+      ls.appendChild(b);
+      refStations.push({i:i, b:b, nom:b.querySelector(".nom"), det:b.querySelector(".det"),
+                        prix:b.querySelector(".prix"), qte:b.querySelector(".qte")});
+    })(i);
+  }
+}
 
+function construireTechs(){
   var lt = q("liste-techs"); lt.textContent = "";
   refTechs.length = 0;
-  SC.TECHS.forEach(function(tk,i){
+  visibleTechs = techsVisibles();
+  var ereCourante = -1;
+  for(var i=0;i<visibleTechs;i++){
+    var tk = SC.TECHS[i];
+    if(tk.ere !== ereCourante){
+      ereCourante = tk.ere;
+      var sep = document.createElement("div");
+      sep.className = "separateur";
+      var g1 = document.createElement("span"); g1.textContent = SC.ERES[tk.ere].an;
+      var g2 = document.createElement("span"); g2.textContent = SC.ERES[tk.ere].nom;
+      sep.appendChild(g1); sep.appendChild(g2);
+      lt.appendChild(sep);
+    }
+    (function(i,tk){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "ligne";
+      b.innerHTML = '<img class="ico" alt="" src="' + SC.dessin.iconeURL(tk.icone) + '">'
+                  + '<span><span class="nom"></span><span class="det"></span></span>'
+                  + '<span class="droite"><span class="prix"></span><span class="qte"></span></span>';
+      b.addEventListener("click", function(){
+        var r = SC.jeu.acheterTech(S,i);
+        if(!r) return;
+        sonTech(); flash(b);
+        if(r === "ere") flashEre();
+        majProduit(); majTout();
+      });
+      lt.appendChild(b);
+      refTechs.push({i:i, b:b, nom:b.querySelector(".nom"), det:b.querySelector(".det"),
+                     prix:b.querySelector(".prix"), qte:b.querySelector(".qte")});
+    })(i,tk);
+  }
+}
+
+function construireHolding(){
+  var lh = q("liste-holding"); lh.textContent = "";
+  refHolding.length = 0;
+  SC.HOLDING.forEach(function(u,i){
     var b = document.createElement("button");
     b.type = "button"; b.className = "ligne";
-    b.innerHTML = '<img class="ico" alt="" src="' + SC.dessin.iconeURL(tk.icone) + '">'
+    b.innerHTML = '<span class="palier">◆</span>'
                 + '<span><span class="nom"></span><span class="det"></span></span>'
-                + '<span class="droite"><span class="prix"></span><span class="qte"></span></span>';
+                + '<span class="droite"><span class="prix"></span><span class="qte">parts</span></span>';
     b.addEventListener("click", function(){
-      var r = SC.jeu.acheterTech(S,i);
-      if(!r) return;
-      sonTech(); flashLigne(b);
-      if(r === "ere") flashEre();
-      majProduit(); majTout();
+      if(SC.jeu.acheterHolding(S,i)){ sonTech(); flash(b); majTout(); }
     });
-    lt.appendChild(b);
-    refTechs.push({b:b, nom:b.querySelector(".nom"), det:b.querySelector(".det"),
-                   prix:b.querySelector(".prix"), qte:b.querySelector(".qte")});
+    lh.appendChild(b);
+    refHolding.push({u:u, b:b, nom:b.querySelector(".nom"), det:b.querySelector(".det"),
+                     prix:b.querySelector(".prix"), qte:b.querySelector(".qte")});
   });
 }
 
-function flashLigne(b){
-  b.classList.remove("neuve");
-  void b.offsetWidth;
-  b.classList.add("neuve");
+function construireJalons(){
+  var g = q("jalons"); g.textContent = "";
+  refJalons.length = 0;
+  SC.JALONS.forEach(function(j){
+    var d = document.createElement("div");
+    d.className = "jalon";
+    d.title = j.desc + " — production +" + Math.round(j.bonus*100) + " %";
+    var b = document.createElement("b"); b.textContent = j.nom;
+    var s = document.createElement("span"); s.textContent = j.desc;
+    d.appendChild(b); d.appendChild(s);
+    g.appendChild(d);
+    refJalons.push({j:j, d:d});
+  });
 }
 
+function flash(b){ b.classList.remove("neuve"); void b.offsetWidth; b.classList.add("neuve"); }
+
+/* ------------------------------ mises à jour ------------------------------ */
 function majLignes(){
-  SC.STATIONS.forEach(function(st,i){
-    var r = refStations[i], c = SC.jeu.coutStation(S,i), dispo = S.cash >= c;
-    var mp = SC.jeu.multProd(S);
+  if(stationsVisibles() !== visibleStations) construireStations();
+  if(techsVisibles() !== visibleTechs) construireTechs();
+
+  var mp = SC.jeu.multProd(S);
+  refStations.forEach(function(r){
+    var st = SC.STATIONS[r.i], c = SC.jeu.coutStation(S,r.i), dispo = S.cash >= c;
     r.nom.textContent = st.nom;
     r.det.textContent = st.det + " · " + n(st.taux*mp) + " u/s"
-      + (S.stations[i] ? " · " + n(S.stations[i]*st.taux*mp) + " u/s au total" : "");
+      + (S.stations[r.i] ? " · " + n(S.stations[r.i]*st.taux*mp) + " u/s au total" : "");
     r.prix.textContent = eur(c);
-    r.qte.textContent = S.stations[i] ? "×" + S.stations[i] : "aucun";
+    r.qte.textContent = S.stations[r.i] ? "×" + n(S.stations[r.i]) : "aucun";
     r.b.disabled = !dispo;
     r.b.classList.toggle("abordable", dispo);
-    r.b.classList.toggle("possede", S.stations[i] > 0);
+    r.b.classList.toggle("possede", S.stations[r.i] > 0);
   });
-  SC.TECHS.forEach(function(tk,i){
-    var r = refTechs[i], acquis = !!S.techs[tk.id], dispo = S.rnd >= tk.cout;
+
+  refTechs.forEach(function(r){
+    var tk = SC.TECHS[r.i], acquis = !!S.techs[tk.id];
+    var cout = SC.jeu.coutTech(S,r.i), dispo = S.rnd >= cout;
     r.nom.textContent = tk.nom;
     r.det.textContent = tk.eff;
-    r.prix.textContent = acquis ? "acquis" : n(tk.cout);
+    r.prix.textContent = acquis ? "acquis" : n(cout);
     r.qte.textContent = acquis ? "" : "points R&D";
     r.b.disabled = acquis || !dispo;
     r.b.classList.toggle("possede", acquis);
     r.b.classList.toggle("abordable", !acquis && dispo);
   });
+
+  refHolding.forEach(function(r){
+    var acquis = !!S.holding[r.u.id], dispo = S.parts >= r.u.cout;
+    r.nom.textContent = r.u.nom;
+    r.det.textContent = r.u.eff;
+    r.prix.textContent = acquis ? "actif" : r.u.cout;
+    r.qte.textContent = acquis ? "" : "parts";
+    r.b.disabled = acquis || !dispo;
+    r.b.classList.toggle("possede", acquis);
+    r.b.classList.toggle("abordable", !acquis && dispo);
+  });
+
+  var acquis = 0;
+  refJalons.forEach(function(r){
+    var ok = !!S.jalons[r.j.id];
+    if(ok) acquis++;
+    r.d.classList.toggle("acquis", ok);
+  });
+  q("h-jalons").textContent = acquis + "/" + SC.JALONS.length
+    + " · production +" + Math.round((SC.jeu.bonusJalons(S)-1)*100) + " %";
 }
 
-/* ------------------------------ panneaux ------------------------------ */
 function majProduit(){
   var p = SC.jeu.produit(S);
   q("p-annee").textContent = p.an + " · Gamme phare";
   q("p-nom").textContent = p.nom;
   q("p-desc").textContent = p.desc;
-  majFrise();
   var e = SC.ERES[SC.jeu.ereIndex(S)];
   q("serie").textContent = e.an + " · " + e.nom;
+  majFrise();
 }
 
 function majHUD(){
@@ -144,6 +244,10 @@ function majHUD(){
   q("j-comp").textContent = n(S.comps);
   q("j-rnd").textContent  = n(S.rnd);
   q("j-part").textContent = pct(SC.jeu.partMarche(S));
+  q("j-act-box").hidden = S.actions < 1;
+  q("j-act").textContent = n(Math.floor(S.actions));
+  q("j-part-h-box").hidden = S.parts < 1;
+  q("j-parts").textContent = n(S.parts);
 
   q("p-prix").textContent  = eur(pu);
   q("p-comps").textContent = n(bc) + " × " + eur(SC.jeu.prixComp(S));
@@ -153,7 +257,7 @@ function majHUD(){
   q("s-sortie").textContent  = eur(cad*pu);
   q("h-scene").textContent   = n(S.unites) + " unités vendues";
   q("h-atelier").textContent = SC.ERES[SC.jeu.ereIndex(S)].an;
-  q("h-prod").textContent    = n(cad) + " u/s";
+  q("h-prod").textContent    = n(SC.jeu.totalStations(S)) + " en service · " + n(cad) + " u/s";
   q("h-rnd").textContent     = Object.keys(S.techs).length + "/" + SC.TECHS.length;
 
   var fc = SC.jeu.forceClic(S);
@@ -174,12 +278,29 @@ function majHUD(){
   q("ipo").hidden = act <= 0;
   if(act > 0) q("ipo-p").textContent = act + " actions · +" + (act*8) + " % production et prix, à vie";
 
+  majConglomerat();
   q("pied-stat").textContent = "Chiffre d'affaires cumulé : " + eur(S.caVie)
-    + " · " + S.actions + " action" + (S.actions > 1 ? "s" : "")
+    + " · " + duree(S.joue) + " de jeu"
+    + " · " + S.ipos + " introduction" + (S.ipos > 1 ? "s" : "") + " en bourse"
     + (SC.jeu.stockageOk() ? " · partie sauvegardée dans ce navigateur" : " · sauvegarde indisponible ici");
 
   majMarche();
   majLignes();
+}
+
+function majConglomerat(){
+  var pa = SC.jeu.partsConglomerat(S);
+  var visible = S.parts > 0 || S.congs > 0 || S.actions >= 100;
+  q("bloc-conglomerat").hidden = !visible;
+  if(!visible) return;
+  q("h-holding").textContent = Object.keys(S.holding).length + "/" + SC.HOLDING.length
+    + " · " + n(S.parts) + " part" + (S.parts > 1 ? "s" : "");
+  q("conglo-note").textContent = pa > 0
+    ? "Solder les actions pour fonder une holding : tout repart de zéro, les parts restent."
+    : "Il faut 150 actions pour convertir votre groupe en holding. Vous en détenez "
+      + n(Math.floor(S.actions)) + ".";
+  q("conglo").hidden = pa <= 0;
+  if(pa > 0) q("conglo-p").textContent = pa + " part" + (pa>1?"s":"") + " de holding · production et prix ×1,3 par part";
 }
 
 /* ------------------------------ marché ------------------------------ */
@@ -193,17 +314,14 @@ function construireMarche(){
   rangs.forEach(function(r){
     var i = document.createElement("i");
     i.style.background = r.col;
-    barre.appendChild(i);
-    refBarre.push(i);
-
+    barre.appendChild(i); refBarre.push(i);
     var li = document.createElement("li");
     if(r.moi) li.className = "moi";
     var p = document.createElement("span"); p.className = "pastille"; p.style.background = r.col;
     var nm = document.createElement("span"); nm.textContent = r.nom;
-    var v  = document.createElement("span"); v.className = "val";
+    var v = document.createElement("span"); v.className = "val";
     li.appendChild(p); li.appendChild(nm); li.appendChild(v);
-    leg.appendChild(li);
-    refLegende.push(v);
+    leg.appendChild(li); refLegende.push(v);
   });
 }
 function majMarche(){
@@ -216,7 +334,7 @@ function majMarche(){
   }
 }
 
-/* ------------------------------ courbe de revenu ------------------------------ */
+/* ------------------------------ courbe ------------------------------ */
 function dessinerCourbe(){
   var c = q("courbe"), r = c.getBoundingClientRect();
   if(r.width < 4) return;
@@ -320,28 +438,24 @@ function assembler(){
   majHUD();
 }
 
-var ipoArme = false, ipoMinuteur = null;
-function ipo(){
-  if(SC.jeu.actionsIPO(S) <= 0) return;
-  if(!ipoArme){
-    ipoArme = true;
-    q("ipo-t").textContent = "Confirmer : tout repart de zéro";
-    clearTimeout(ipoMinuteur);
-    ipoMinuteur = setTimeout(function(){ ipoArme = false; q("ipo-t").textContent = "Entrer en bourse"; }, 4000);
-    return;
-  }
-  ipoArme = false;
-  q("ipo-t").textContent = "Entrer en bourse";
-  var neuf = SC.jeu.ipo(S);
-  if(neuf){ S = neuf; SC.dessin.confetti(); sonTech(); majTout(true); }
+function confirmationDouble(bouton, libelle, action){
+  var arme = false, minuteur = null, txt = bouton.querySelector(".t") || bouton;
+  var original = txt.textContent;
+  bouton.addEventListener("click", function(){
+    if(!arme){
+      arme = true; txt.textContent = libelle;
+      clearTimeout(minuteur);
+      minuteur = setTimeout(function(){ arme = false; txt.textContent = original; }, 4000);
+      return;
+    }
+    arme = false; txt.textContent = original;
+    action();
+  });
 }
 
 function majTout(reconstruire){
-  if(reconstruire) construireListes();
-  majProduit();
-  majJournal();
-  majHUD();
-  dessinerCourbe();
+  if(reconstruire){ construireStations(); construireTechs(); construireHolding(); construireJalons(); }
+  majProduit(); majJournal(); majHUD(); dessinerCourbe();
 }
 
 /* ------------------------------ câblage ------------------------------ */
@@ -350,26 +464,33 @@ q("scene-cadre").addEventListener("click", assembler);
 q("acheter-comp").addEventListener("click", function(){
   if(SC.jeu.acheterComposants(S)){ sonAchat(); SC.dessin.livrer(); majHUD(); }
 });
-q("ipo").addEventListener("click", ipo);
-q("reset").addEventListener("click", function(){
-  S = SC.jeu.neuve(0);
+confirmationDouble(q("ipo"), "Confirmer : tout repart de zéro", function(){
+  var neuf = SC.jeu.ipo(S);
+  if(neuf){ S = neuf; SC.dessin.confetti(); sonTech(); majTout(true); }
+});
+confirmationDouble(q("conglo"), "Confirmer : les actions sont soldées", function(){
+  var neuf = SC.jeu.conglomerat(S);
+  if(neuf){ S = neuf; SC.dessin.confetti(); sonJalon(); majTout(true); }
+});
+confirmationDouble(q("reset"), "Confirmer l'abandon", function(){
+  S = SC.jeu.neuve(null);
   SC.jeu.noter(S, "Nouvelle société fondée dans un garage de banlieue.");
   majTout(true);
 });
 
 q("curseur-marge").addEventListener("input", function(){
   S.marge = parseInt(this.value,10)/100;
-  majMargeTexte();
-  majHUD();
+  majMargeTexte(); majHUD();
 });
 function majMargeTexte(){
   q("marge-v").textContent = Math.round(S.marge*100) + " %";
   var c = SC.jeu.conquete(S);
+  var f = c.toLocaleString("fr-FR",{maximumFractionDigits:2});
   q("marge-effet").textContent = S.marge > 1.02
-    ? "Recette en hausse, conquête du marché ralentie (×" + c.toLocaleString("fr-FR",{maximumFractionDigits:2}) + ")."
+    ? "Recette en hausse, conquête du marché ralentie (×" + f + ")."
     : (S.marge < .98
-      ? "Recette réduite, parts de marché gagnées plus vite (×" + c.toLocaleString("fr-FR",{maximumFractionDigits:2}) + ")."
-      : "Prix du marché : recette et conquête à l'équilibre.");
+      ? "Recette réduite, parts de marché gagnées plus vite (×" + f + ")."
+      : "Prix du marché : recette et conquête à l'équilibre (×" + f + ").");
 }
 
 q("theme").addEventListener("click", function(){
@@ -386,11 +507,11 @@ q("son").addEventListener("click", function(){
   this.setAttribute("aria-label", audio.actif ? "Couper le son" : "Activer le son");
   if(audio.actif){ ctxAudio(); bip(880,.08,"square",.04); }
 });
+q("retour-ok").addEventListener("click", function(){ q("voile-retour").hidden = true; });
 
 document.addEventListener("keydown", function(e){
   if(e.code === "Space" && !/INPUT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)){
-    e.preventDefault();
-    assembler();
+    e.preventDefault(); assembler();
   }
 });
 window.addEventListener("resize", dessinerCourbe);
@@ -408,14 +529,14 @@ function boucle(now){
   if(res.gain > 0) caSeconde += res.gain;
   if(res.debutEvenement) montrerEvenement(res.debutEvenement);
   if(res.finEvenement) cacherEvenement();
+  if(res.jalons){ sonJalon(); majJournal(); }
 
-  var cad = SC.jeu.cadence(S);
   if(res.faites > 0){
     horlogeColis += dt;
     if(horlogeColis > .32){ horlogeColis = 0; SC.dessin.expedier(S.gamme); }
   }
 
-  SC.dessin.dessiner(ctx, S, t, dt, res.faites > 0 ? cad : 0);
+  SC.dessin.dessiner(ctx, S, t, dt, res.faites > 0 ? SC.jeu.cadence(S) : 0);
 
   depuisRendu += dt;
   if(depuisRendu >= .12){
@@ -434,22 +555,31 @@ function boucle(now){
 }
 
 /* ------------------------------ démarrage ------------------------------ */
+function montrerRetour(r){
+  q("retour-duree").textContent = "L'atelier a tourné au ralenti pendant " + duree(r.duree) + ".";
+  q("retour-unites").textContent = n(r.unites);
+  q("retour-gain").textContent = eur(r.gain);
+  q("retour-note").textContent = r.plafonne
+    ? "La production hors ligne est plafonnée à douze heures — au-delà, les équipes s'arrêtent."
+    : "Hors ligne, la chaîne tourne à 60 % de sa cadence.";
+  q("voile-retour").hidden = false;
+}
+
 function demarrer(){
-  construireListes();
+  construireStations(); construireTechs(); construireHolding(); construireJalons();
   construireMarche();
   q("curseur-marge").value = Math.round(S.marge*100);
   majMargeTexte();
   majTout(false);
+  var r = SC.jeu.rattraper(S);
+  if(r) montrerRetour(r);
   requestAnimationFrame(boucle);
 }
 
 var hot = window.claude && window.claude.hot;
 if(hot && typeof hot.snapshot === "function") hot.snapshot(function(){ return {etat:S}; });
 if(hot && typeof hot.ready === "function"){
-  hot.ready(function(d){
-    if(d && d.etat) S = d.etat;
-    demarrer();
-  });
+  hot.ready(function(d){ if(d && d.etat) S = d.etat; demarrer(); });
 }else{
   demarrer();
 }
