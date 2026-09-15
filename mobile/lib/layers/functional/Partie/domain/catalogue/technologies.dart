@@ -1,0 +1,223 @@
+import '../entities/technologie.dart';
+
+const technologies = <Technologie>[
+  Technologie(
+    id: 'fer', ere: 0, nom: 'Fer thermorégulé',
+    cout: 13, effet: 'Assemblage manuel ×4', icone: 'fer',
+  ),
+  Technologie(
+    id: 'pcb', ere: 0, nom: 'Circuit imprimé double face',
+    cout: 54, effet: '−20 % de composants par unité', icone: 'carte',
+  ),
+  Technologie(
+    id: 'mos', ere: 0, nom: 'Transistor MOS',
+    cout: 130, effet: 'Micro familial · production ×1,25', icone: 'puce',
+    ouvre: 1, production: 1.25,
+  ),
+  Technologie(
+    id: 'appro', ere: 1, nom: 'Approvisionnement automatique',
+    cout: 1200, effet: 'Rachète les composants toute seule', icone: 'carton',
+  ),
+  Technologie(
+    id: 'clavier', ere: 1, nom: 'Clavier mécanique',
+    cout: 2900, effet: 'Prix ×1,2', icone: 'clavier',
+    prix: 1.2,
+  ),
+  Technologie(
+    id: 'v23', ere: 1, nom: 'Modem V.23',
+    cout: 6200, effet: 'Terminal télématique', icone: 'modem',
+    ouvre: 2,
+  ),
+  Technologie(
+    id: 'annuaire', ere: 2, nom: 'Annuaire électronique',
+    cout: 1900000, effet: 'Conquête du marché ×1,2', icone: 'livre',
+    conquete: 1.2,
+  ),
+  Technologie(
+    id: 'logi', ere: 2, nom: 'Entrepôt central',
+    cout: 3400000, effet: '−20 % de composants', icone: 'palette',
+  ),
+  Technologie(
+    id: 'bus16', ere: 2, nom: 'Bus 16 bits',
+    cout: 6700000, effet: 'Compatible PC · production ×1,3', icone: 'bus',
+    ouvre: 3, production: 1.3,
+  ),
+  Technologie(
+    id: 'gui', ere: 3, nom: 'Interface graphique',
+    cout: 2200000000, effet: 'Prix ×1,3', icone: 'souris',
+    prix: 1.3,
+  ),
+  Technologie(
+    id: 'lan', ere: 3, nom: 'Réseau local',
+    cout: 4200000000, effet: 'Production ×1,4', icone: 'reseau',
+    production: 1.4,
+  ),
+  Technologie(
+    id: 'lcd', ere: 3, nom: 'Écran à cristaux liquides',
+    cout: 8000000000, effet: 'Portable à écran LCD', icone: 'ecran',
+    ouvre: 4,
+  ),
+  Technologie(
+    id: 'lithium', ere: 4, nom: 'Batterie lithium-ion',
+    cout: 52000000000, effet: 'Prix ×1,25', icone: 'pile',
+    prix: 1.25,
+  ),
+  Technologie(
+    id: 'sav', ere: 4, nom: 'Service après-vente',
+    cout: 91000000000, effet: 'Crises de marché deux fois moins dures', icone: 'casque',
+  ),
+  Technologie(
+    id: 'cdrom', ere: 4, nom: 'Lecteur de disques optiques',
+    cout: 160000000000, effet: 'Station multimédia', icone: 'disque',
+    ouvre: 5,
+  ),
+  Technologie(
+    id: 'accel3d', ere: 5, nom: 'Accélérateur 3D',
+    cout: 250000000000, effet: 'Production ×1,5', icone: 'gpu',
+    production: 1.5,
+  ),
+  Technologie(
+    id: 'marque', ere: 5, nom: 'Campagne de marque',
+    cout: 440000000000, effet: 'Prix ×1,5 · conquête ×1,25', icone: 'megaphone',
+    prix: 1.5, conquete: 1.25,
+  ),
+  Technologie(
+    id: 'tcpip', ere: 5, nom: 'Pile TCP/IP',
+    cout: 750000000000, effet: 'Serveur web 1U', icone: 'prise',
+    ouvre: 6,
+  ),
+  Technologie(
+    id: 'colo', ere: 6, nom: 'Hébergement en colocation',
+    cout: 1400000000000, effet: 'Production ×1,4', icone: 'baie',
+    production: 1.4,
+  ),
+  Technologie(
+    id: 'ssl', ere: 6, nom: 'Chiffrement de bout en bout',
+    cout: 2600000000000, effet: 'Prix ×1,3', icone: 'cadenas',
+    prix: 1.3,
+  ),
+  Technologie(
+    id: 'cotation', ere: 6, nom: 'Cotation au nouveau marché',
+    cout: 4700000000000, effet: 'Baie d\'hébergement', icone: 'courbe',
+    ouvre: 7,
+  ),
+  Technologie(
+    id: 'restruct', ere: 7, nom: 'Plan de restructuration',
+    cout: 5400000000000, effet: 'Moyens de production −15 %', icone: 'ciseaux',
+  ),
+  Technologie(
+    id: 'fibre', ere: 7, nom: 'Fibre optique',
+    cout: 10000000000000, effet: 'Production ×1,5', icone: 'fibre',
+    production: 1.5,
+  ),
+  Technologie(
+    id: 'degroupage', ere: 7, nom: 'Dégroupage de la boucle locale',
+    cout: 18000000000000, effet: 'Box haut débit', icone: 'prise',
+    ouvre: 8,
+  ),
+  Technologie(
+    id: 'cdn', ere: 8, nom: 'Réseau de distribution',
+    cout: 21000000000000, effet: 'Conquête du marché ×1,3', icone: 'globe',
+    conquete: 1.3,
+  ),
+  Technologie(
+    id: 'wifi', ere: 8, nom: 'Puce sans fil',
+    cout: 36000000000000, effet: 'Prix ×1,3', icone: 'onde',
+    prix: 1.3,
+  ),
+  Technologie(
+    id: 'arm', ere: 8, nom: 'Puce à faible consommation',
+    cout: 63000000000000, effet: 'Téléphone à dalle tactile', icone: 'puce2',
+    ouvre: 9,
+  ),
+  Technologie(
+    id: 'boutique', ere: 9, nom: 'Boutique d\'applications',
+    cout: 69000000000000, effet: 'Prix ×1,6', icone: 'sac',
+    prix: 1.6,
+  ),
+  Technologie(
+    id: 'capacitif', ere: 9, nom: 'Dalle capacitive multipoint',
+    cout: 120000000000000, effet: 'Production ×1,5', icone: 'doigt',
+    production: 1.5,
+  ),
+  Technologie(
+    id: 'virtu', ere: 9, nom: 'Virtualisation',
+    cout: 220000000000000, effet: 'Offre cloud', icone: 'nuage',
+    ouvre: 10,
+  ),
+  Technologie(
+    id: 'conteneur', ere: 10, nom: 'Conteneurisation',
+    cout: 370000000000000, effet: 'Production ×1,6', icone: 'boite',
+    production: 1.6,
+  ),
+  Technologie(
+    id: 'edge', ere: 10, nom: 'Calcul en périphérie',
+    cout: 680000000000000, effet: 'Prix ×1,4', icone: 'antenne',
+    prix: 1.4,
+  ),
+  Technologie(
+    id: 'lpwan', ere: 10, nom: 'Radio basse consommation',
+    cout: 1200000000000000, effet: 'Capteur connecté', icone: 'onde',
+    ouvre: 11,
+  ),
+  Technologie(
+    id: 'flotte', ere: 11, nom: 'Gestion de flotte',
+    cout: 2100000000000000, effet: 'Production ×1,5', icone: 'carte2',
+    production: 1.5,
+  ),
+  Technologie(
+    id: 'gpu', ere: 11, nom: 'Calcul parallèle',
+    cout: 3800000000000000, effet: 'Production ×2', icone: 'gpu',
+    production: 2,
+  ),
+  Technologie(
+    id: 'nn', ere: 11, nom: 'Réseaux de neurones',
+    cout: 7000000000000000, effet: 'Grappe d\'accélérateurs', icone: 'neurone',
+    ouvre: 12,
+  ),
+  Technologie(
+    id: 'inference', ere: 12, nom: 'Optimisation de l\'inférence',
+    cout: 13000000000000000, effet: 'Prix ×1,5', icone: 'eclair',
+    prix: 1.5,
+  ),
+  Technologie(
+    id: 'immersion', ere: 12, nom: 'Refroidissement immersif',
+    cout: 24000000000000000, effet: 'Production ×1,7', icone: 'goutte',
+    production: 1.7,
+  ),
+  Technologie(
+    id: 'qubit', ere: 12, nom: 'Qubit supraconducteur',
+    cout: 40000000000000000, effet: 'Calculateur quantique', icone: 'atome',
+    ouvre: 13,
+  ),
+  Technologie(
+    id: 'correction', ere: 13, nom: 'Correction d\'erreurs',
+    cout: 82000000000000000, effet: 'Production ×2', icone: 'bouclier',
+    production: 2,
+  ),
+  Technologie(
+    id: 'cryo', ere: 13, nom: 'Cryogénie industrielle',
+    cout: 140000000000000000, effet: 'Prix ×1,6', icone: 'flocon',
+    prix: 1.6,
+  ),
+  Technologie(
+    id: 'memristor', ere: 13, nom: 'Memristor',
+    cout: 270000000000000000, effet: 'Substrat neuromorphique', icone: 'spirale',
+    ouvre: 14,
+  ),
+  Technologie(
+    id: 'plasticite', ere: 14, nom: 'Plasticité synthétique',
+    cout: 530000000000000000, effet: 'Production ×2,2', icone: 'neurone',
+    production: 2.2,
+  ),
+  Technologie(
+    id: 'autoconcep', ere: 14, nom: 'Conception autonome',
+    cout: 960000000000000000, effet: 'Prix ×1,8', icone: 'oeil',
+    prix: 1.8,
+  ),
+  Technologie(
+    id: 'recursif', ere: 14, nom: 'Auto-amélioration',
+    cout: 1700000000000000000, effet: 'Production ×3', icone: 'spirale',
+    production: 3,
+  ),
+];

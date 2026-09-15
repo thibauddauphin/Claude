@@ -650,10 +650,15 @@ function assembler(S){
   if(S.comps < u*besoinComps(S)) return 0;
   return encaisser(S, u);
 }
+/* Achète un lot, ou autant que la trésorerie le permet : un atelier à sec doit
+   toujours pouvoir repartir, sinon dépenser jusqu'au dernier euro rend la
+   partie irrécupérable. */
 function acheterComposants(S){
-  var lot = lotComps(S), c = lot*prixComp(S);
-  if(S.cash < c) return false;
-  S.cash -= c; S.comps += lot;
+  var pc = prixComp(S);
+  if(pc <= 0) return false;
+  var quantite = Math.min(lotComps(S), Math.floor(S.cash/pc));
+  if(quantite < 1) return false;
+  S.cash -= quantite*pc; S.comps += quantite;
   return true;
 }
 
