@@ -1,0 +1,131 @@
+<meta charset="utf-8">
+<title>Silicium &amp; Cie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+
+<header class="rack">
+  <div class="rack-in">
+    <div class="marque">
+      <b>Silicium &amp; Cie</b>
+      <span class="serie" id="serie">1975 · Le garage</span>
+    </div>
+    <div class="jauges">
+      <div class="jauge"><span class="k">Trésorerie</span><span class="v" id="j-cash">—</span></div>
+      <div class="jauge"><span class="k">Revenu</span><span class="v" id="j-rev">—</span></div>
+      <div class="jauge" id="j-comp-box"><span class="k">Composants</span><span class="v" id="j-comp">—</span></div>
+      <div class="jauge"><span class="k">Points R&amp;D</span><span class="v" id="j-rnd">—</span></div>
+      <div class="jauge"><span class="k">Part de marché</span><span class="v" id="j-part">—</span></div>
+    </div>
+    <div class="outils">
+      <button class="outil" id="son" type="button" aria-pressed="false" aria-label="Activer le son" title="Son">🔇</button>
+      <button class="outil" id="theme" type="button" aria-label="Changer de thème" title="Thème">◐</button>
+    </div>
+  </div>
+</header>
+
+<main class="plateau">
+
+  <section class="bloc" id="bloc-scene">
+    <h2>L'atelier <span class="compt" id="h-scene"></span></h2>
+    <div class="scene-cadre" id="scene-cadre" title="Cliquer pour assembler">
+      <canvas id="scene" width="384" height="216" role="img" aria-label="Vue de l'atelier : postes de travail, tapis roulant et quai d'expédition"></canvas>
+      <div class="banniere" id="banniere" role="status">
+        <b id="ev-nom"></b><span id="ev-eff"></span>
+      </div>
+      <div class="ere-flash" id="ere-flash" aria-hidden="true">
+        <div class="an" id="flash-an"></div>
+        <div class="t" id="flash-t"></div>
+      </div>
+    </div>
+    <div class="scene-bas">
+      <span>Cadence <b id="s-cadence">0</b> u/s · sortie <b id="s-sortie">0 €</b>/s</span>
+      <span class="indice">Cliquez l'atelier ou pressez Espace</span>
+    </div>
+  </section>
+
+  <section class="bloc" id="bloc-atelier">
+    <h2>Gamme en production <span class="compt" id="h-atelier"></span></h2>
+    <div class="corps">
+      <div class="produit">
+        <div>
+          <span class="millesime" id="p-annee"></span>
+          <h3 id="p-nom"></h3>
+          <p id="p-desc"></p>
+        </div>
+        <canvas id="vignette" width="64" height="40" aria-hidden="true"></canvas>
+        <div class="fiche">
+          <span><i>Prix de vente</i><b id="p-prix"></b></span>
+          <span><i>Composants</i><b id="p-comps"></b></span>
+          <span><i>Marge nette</i><b id="p-marge"></b></span>
+        </div>
+      </div>
+
+      <button class="touche" id="assembler" type="button">
+        <span class="lbl">Assembler</span>
+        <span class="sub" id="assembler-sub"></span>
+      </button>
+
+      <div class="alerte-stock" id="alerte">Production à l'arrêt — stock de composants épuisé.</div>
+
+      <button class="btn" id="acheter-comp" type="button">
+        <span class="t" id="acheter-comp-t">Acheter des composants</span>
+        <span class="p" id="acheter-comp-p"></span>
+      </button>
+
+      <div class="marge">
+        <div class="marge-tete"><span>Politique de prix</span><b id="marge-v">100 %</b></div>
+        <input type="range" id="curseur-marge" min="70" max="160" step="5" value="100">
+        <div class="marge-pied"><span>Casser les prix</span><span>Vendre cher</span></div>
+        <div class="indice" id="marge-effet"></div>
+      </div>
+
+      <button class="btn primaire" id="ipo" type="button" hidden>
+        <span class="t" id="ipo-t">Entrer en bourse</span>
+        <span class="p" id="ipo-p"></span>
+      </button>
+    </div>
+  </section>
+
+  <section class="bloc" id="bloc-stations">
+    <h2>Moyens de production <span class="compt" id="h-prod"></span></h2>
+    <div class="corps"><div class="liste" id="liste-stations"></div></div>
+  </section>
+
+  <section class="bloc" id="bloc-rnd">
+    <h2>Recherche &amp; développement <span class="compt" id="h-rnd"></span></h2>
+    <div class="corps"><div class="liste" id="liste-techs"></div></div>
+  </section>
+
+  <section class="bloc" id="bloc-marche">
+    <h2>Marché</h2>
+    <div class="corps">
+      <div>
+        <div class="part-barre" id="part-barre" role="img" aria-label="Répartition des parts de marché"></div>
+      </div>
+      <ul class="legende" id="legende"></ul>
+      <div class="graphe">
+        <canvas id="courbe" aria-label="Revenu des soixante dernières secondes"></canvas>
+        <div class="sous"><span>Revenu · 60 s</span><span id="courbe-max"></span></div>
+      </div>
+      <ul class="journal" id="journal"></ul>
+    </div>
+  </section>
+
+</main>
+
+<nav class="frise" aria-label="Progression historique">
+  <h2>Ères</h2>
+  <div class="rail" id="rail"></div>
+</nav>
+
+<div class="pied">
+  <span id="pied-stat"></span>
+  <button type="button" id="reset">Recommencer une partie</button>
+</div>
+
+<script src="donnees.js"></script>
+<script src="jeu.js"></script>
+<script src="dessin.js"></script>
+<script src="interface.js"></script>
