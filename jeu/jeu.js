@@ -32,7 +32,7 @@ function neuve(perm){
     unites:0, ca:0, puissance:0,
     rivaux:SC.CONCURRENTS.map(function(r){ return r.p; }),
     buf:0, ev:null, horlogeEv:24 + Math.random()*26,
-    equipe:[], candidat:null, horlogeCandidat:40,
+    equipe:[], candidat:null, horlogeCandidat:40, retraites:0,
     hist:new Array(60).fill(0),
     journal:[],
     majSauvegarde:Date.now()
@@ -67,6 +67,35 @@ function a(S,id){ return !!S.techs[id]; }
 function h(S,id){ return !!S.holding[id]; }
 
 var CARACTERE = SC.CARACTERES.reduce(function(m,c){ m[c.id] = c; return m; }, {});
+var ANNEES_PAR_SECONDE = 1/360;      /* une année de carrière toutes les six minutes */
+
+/* Les binômes : deux personnes appariées majorent de moitié ce que chacune
+   apporte, et certaines paires de caractères ouvrent une synergie nommée. */
+function partenaire(S, e){
+  if(!e.binome) return null;
+  for(var i=0;i<S.equipe.length;i++) if(S.equipe[i].graine === e.binome) return S.equipe[i];
+  return null;
+}
+function synergie(a, b){
+  if(!a || !b) return null;
+  for(var i=0;i<SC.SYNERGIES.length;i++){
+    var y = SC.SYNERGIES[i];
+    if((y.a === a.car && y.b === b.car) || (y.a === b.car && y.b === a.car)) return y;
+  }
+  return null;
+}
+function paires(S){
+  var vues = {}, out = [];
+  for(var i=0;i<S.equipe.length;i++){
+    var e = S.equipe[i];
+    if(!e.binome || vues[e.graine]) continue;
+    var p = partenaire(S, e);
+    if(!p) continue;
+    vues[e.graine] = vues[p.graine] = true;
+    out.push([e, p]);
+  }
+  return out;
+}
 
 /* Un employé rend d'autant mieux qu'il a le moral : à plat, il ne donne plus
    que 40 % de ce qu'il apporte. */
@@ -75,10 +104,19 @@ function multEquipe(S, cle){
   for(var i=0;i<S.equipe.length;i++){
     var e = S.equipe[i], c = CARACTERE[e.car];
     if(!c || !c[cle]) continue;
-    m *= 1 + (c[cle] - 1) * (.4 + .6*Math.max(0, Math.min(100, e.moral))/100);
+    var force = (.4 + .6*Math.max(0, Math.min(100, e.moral))/100);
+    if(e.binome && partenaire(S, e)) force *= 1.5;
+    m *= 1 + (c[cle] - 1) * force;
+  }
+  var ps = paires(S);
+  for(var k=0;k<ps.length;k++){
+    var y = synergie(ps[k][0], ps[k][1]);
+    if(y && y[cle]) m *= y[cle];
   }
   return m;
 }
+/* chaque départ à la retraite laisse un savoir-faire derrière lui */
+function heritage(S){ return 1 + Math.min(.3, (S.retraites || 0) * .015); }
 function masseSalariale(S){
   var t = 0;
   for(var i=0;i<S.equipe.length;i++) t += S.equipe[i].part;
@@ -106,7 +144,7 @@ function multProd(S){
   }
   if(h(S,"cadence")) m *= 3;
   if(h(S,"empire")) m *= 2;
-  m *= multEquipe(S, "prod");
+  m *= multEquipe(S, "prod") * heritage(S);
   if(S.ev && S.ev.cle === "prod") m *= S.ev.v;
   return m;
 }
@@ -284,27 +322,72 @@ function nouveauCandidat(S){
   var car = tirer(SC.CARACTERES);
   var poste = 0;
   for(var i=0;i<SC.STATIONS.length;i++) if(S.stations[i] > 0) poste = i;
-  return {
+  var c = {
     prenom: tirer(generationPrenoms(S)),
     nom: tirer(SC.NOMS),
     car: car.id,
     poste: SC.STATIONS[poste].nom,
     part: car.part * (.85 + Math.random()*.4),
+    age: 22 + Math.floor(Math.random()*26),
+    retraite: 62 + Math.floor(Math.random()*5),
     graine: Math.floor(Math.random()*100000)
   };
+  /* quand vous pesez sur le marché, on vient de chez les concurrents —
+     contre une indemnité de transfert, et au détriment du rival. */
+  if(partMarche(S) > 40 && Math.random() < .35){
+    var r = Math.floor(Math.random()*SC.CONCURRENTS.length);
+    c.rival = r;
+    c.origine = SC.CONCURRENTS[r].nom;
+    c.part *= 1.45;
+    c.age = 28 + Math.floor(Math.random()*22);
+    c.indemnite = cadence(S) * prixUnite(S) * 600;
+  }
+  return c;
 }
 
 function embaucher(S){
   if(!S.candidat || S.equipe.length >= placesEquipe(S)) return false;
   var e = S.candidat;
+  if(e.indemnite){
+    if(S.cash < e.indemnite) return false;
+    S.cash -= e.indemnite;
+    S.rivaux[e.rival] *= .94;          /* le rival perd une tête */
+  }
   e.moral = 78;
   e.confort = 0;
   e.partInitiale = e.part;
   e.anciennete = 0;
+  e.binome = null;
   S.equipe.push(e);
   S.candidat = null;
   S.horlogeCandidat = 90 + Math.random()*90;
-  noter(S, e.prenom + " " + e.nom + " rejoint l'atelier — " + CARACTERE[e.car].nom.toLowerCase() + ".");
+  noter(S, e.prenom + " " + e.nom + (e.origine
+    ? " est débauché" + (fem(e) ? "e" : "") + " chez " + e.origine + "."
+    : " rejoint l'atelier — " + CARACTERE[e.car].nom.toLowerCase() + "."));
+  return true;
+}
+
+/* apparier ou séparer deux personnes */
+function apparier(S, i, j){
+  var a = S.equipe[i], b = S.equipe[j];
+  if(!a || !b || a === b) return false;
+  delier(S, a); delier(S, b);
+  a.binome = b.graine; b.binome = a.graine;
+  var y = synergie(a, b);
+  noter(S, a.prenom + " et " + b.prenom + " travaillent désormais en binôme"
+    + (y ? " — " + y.nom.toLowerCase() + "." : "."));
+  return true;
+}
+function delier(S, e){
+  if(!e || !e.binome) return;
+  var p = partenaire(S, e);
+  if(p) p.binome = null;
+  e.binome = null;
+}
+function separer(S, i){
+  var e = S.equipe[i];
+  if(!e || !e.binome) return false;
+  delier(S, e);
   return true;
 }
 function refuser(S){
@@ -362,14 +445,39 @@ function majEquipe(S, dt, bloque){
     if(c && c.moral) protection = Math.min(protection, c.moral);
   }
   var cible = cibleMoral(S, bloque, protection);
-  var partis = null;
+  var partis = null, retraites = null;
 
   for(var k=S.equipe.length-1; k>=0; k--){
     var e = S.equipe[k], car = CARACTERE[e.car];
     e.anciennete += dt;
+    e.age = (e.age || 30) + dt*ANNEES_PAR_SECONDE;
     e.confort = (e.confort || 0) * Math.exp(-dt/1800);
-    var vise = cible + e.confort;
+
+    /* départ à la retraite : la personne forme son remplaçant avant de partir */
+    if(e.age >= (e.retraite || 64)){
+      var ans = Math.max(1, Math.round(e.anciennete*ANNEES_PAR_SECONDE));
+      noter(S, e.prenom + " " + e.nom + " " + tirer(SC.RETRAITES)
+        + " (" + ans + " an" + (ans>1?"s":"") + " de maison)");
+      S.retraites = (S.retraites || 0) + 1;
+      var releve = {
+        prenom: tirer(generationPrenoms(S)), nom: tirer(SC.NOMS),
+        car: e.car, poste: e.poste,
+        part: e.partInitiale * .85, partInitiale: e.partInitiale * .85,
+        moral: 88, confort: 0, anciennete: 0,
+        age: 23 + Math.floor(Math.random()*8), retraite: 62 + Math.floor(Math.random()*5),
+        graine: Math.floor(Math.random()*100000), binome: null, forme: true
+      };
+      delier(S, e);
+      S.equipe[k] = releve;
+      (retraites = retraites || []).push({partant:e, releve:releve});
+      continue;
+    }
+
+    var duo = partenaire(S, e);
+    var vise = cible + e.confort + (duo ? 10 : 0);
     if(car.stoique) vise = Math.max(vise, 35);
+    var yy = duo ? synergie(e, duo) : null;
+    if(yy && yy.plancher) vise = Math.max(vise, yy.plancher);
     e.moral += (vise - e.moral) * Math.min(1, .0016*dt);
     if(e.moral > 100) e.moral = 100;
 
@@ -390,6 +498,9 @@ function majEquipe(S, dt, bloque){
               : SC.DEPARTS[Math.floor(Math.random()*SC.DEPARTS.length)];
       }
       noter(S, e.prenom + " " + e.nom + " " + motif);
+      var orphelin = partenaire(S, e);
+      if(orphelin){ orphelin.moral = Math.max(1, orphelin.moral - 25); orphelin.binome = null; }
+      delier(S, e);
       S.equipe.splice(k,1);
       (partis = partis || []).push(e);
     }
@@ -400,7 +511,7 @@ function majEquipe(S, dt, bloque){
     S.horlogeCandidat -= dt;
     if(S.horlogeCandidat <= 0) S.candidat = nouveauCandidat(S);
   }
-  return partis;
+  return {partis:partis, retraites:retraites};
 }
 
 /* ----------------------------- tour de jeu ----------------------------- */
@@ -481,7 +592,9 @@ function tick(S, dt){
     if(res.faites > 0) res.gain = encaisser(S, res.faites);
   }
   res.bloque = cad > 0 && S.comps < besoin;
-  res.partis = majEquipe(S, dt, res.bloque);
+  var vie = majEquipe(S, dt, res.bloque);
+  res.partis = vie.partis;
+  res.retraites = vie.retraites;
   res.jalons = verifierJalons(S);
   return res;
 }
@@ -563,7 +676,17 @@ function charger(){
     S.holding  = o.holding || {};
     S.jalons   = o.jalons || {};
     S.equipe   = Array.isArray(o.equipe) ? o.equipe.filter(function(e){ return e && CARACTERE[e.car]; }) : [];
-    S.equipe.forEach(function(e){ if(!e.partInitiale) e.partInitiale = e.part; if(!e.confort) e.confort = 0; });
+    S.retraites = o.retraites || 0;
+    S.equipe.forEach(function(e){
+      if(!e.partInitiale) e.partInitiale = e.part;
+      if(!e.confort) e.confort = 0;
+      if(!e.age) e.age = 34;
+      if(!e.retraite) e.retraite = 64;
+    });
+    /* on ne garde que les binômes dont les deux moitiés sont encore là */
+    S.equipe.forEach(function(e){
+      if(e.binome && !S.equipe.some(function(o){ return o.graine === e.binome; })) e.binome = null;
+    });
     S.candidat = (o.candidat && CARACTERE[o.candidat.car]) ? o.candidat : null;
     S.marge    = typeof o.marge === "number" ? o.marge : 1;
     S.parts    = o.parts || 0;
@@ -593,6 +716,7 @@ SC.jeu = {
   acheterComposants:acheterComposants, acheterHolding:acheterHolding,
   ipo:ipo, conglomerat:conglomerat, valeurJalon:valeurJalon,
   embaucher:embaucher, refuser:refuser, augmenter:augmenter, prime:prime, coutPrime:coutPrime,
+  apparier:apparier, separer:separer, partenaire:partenaire, synergie:synergie, heritage:heritage,
   masseSalariale:masseSalariale, placesEquipe:placesEquipe, cibleMoral:cibleMoral, caractere:function(id){ return CARACTERE[id]; },
   charger:charger, sauver:sauver,
   stockageOk:function(){ return stockageOk; },

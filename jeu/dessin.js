@@ -993,14 +993,20 @@ function alea(graine){
   return function(){ x = (x*1103515245 + 12345) & 0x7fffffff; return x/0x7fffffff; };
 }
 
-function portrait(g, x, y, graine, lunettesForcees){
+function portrait(g, x, y, graine, age){
   var r = alea(graine);
   var peau = PEAUX[Math.floor(r()*PEAUX.length)];
   var chev = CHEVEUX[Math.floor(r()*CHEVEUX.length)];
   var col  = COLS[Math.floor(r()*COLS.length)];
   var style = Math.floor(r()*5);
-  var lunettes = lunettesForcees || r() < .32;
+  var lunettes = r() < .32;
   var barbe = r() < .26;
+  /* les tempes blanchissent avec les années */
+  if(age){
+    var gris = Math.max(0, Math.min(.85, (age - 44)/26));
+    if(gris > 0) chev = melange(chev, "#d8d5cd", gris);
+    if(age > 52) lunettes = true;
+  }
   var ombre = melange(peau, "#000000", .22);
 
   /* épaules */
@@ -1046,10 +1052,10 @@ function melange(a,b,t){
   return "#" + h(x[0]+(y[0]-x[0])*t) + h(x[1]+(y[1]-x[1])*t) + h(x[2]+(y[2]-x[2])*t);
 }
 
-function portraitURL(graine, savant){
+function portraitURL(graine, age){
   var c = document.createElement("canvas");
   c.width = 16; c.height = 18;
-  portrait(c.getContext("2d"), 0, 0, graine, savant);
+  portrait(c.getContext("2d"), 0, 0, graine, age);
   return c.toDataURL();
 }
 

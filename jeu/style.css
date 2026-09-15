@@ -419,3 +419,12 @@ img{max-width:100%}
   .candidature{grid-template-columns:auto minmax(0,1fr)}
   .cand-actions{grid-column:1 / -1}
 }
+
+/* ---------------- binômes, débauchage, retraites ---------------- */
+.emp-age{font-family:var(--f-mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.04em}
+.fiche-emp.apparie{border-left:4px solid var(--rival-2)}
+.fiche-emp.forme{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 7%,transparent),transparent 60%)}
+.emp-actions .duo{min-width:66px}
+.candidature.debauchage{border-color:var(--rival-3)}
+.candidature.debauchage .cand-car{color:var(--rival-3)}
+.depart.retraite{color:var(--accent);border-color:var(--accent)}

@@ -252,3 +252,24 @@ SC.DEPARTS = [
   "s'en va monter son propre atelier.",
   "prend la porte sans un mot. Le badge est resté sur l'établi."
 ];
+
+/* Synergies : certains caractères, mis en binôme, font mieux qu'additionner.
+   Le binôme générique majore déjà de 50 % ce que chacun apporte ; celles-ci
+   s'ajoutent par-dessus. */
+SC.SYNERGIES = [
+  {a:"soudure",  b:"formation",   nom:"Compagnonnage",      eff:"Production +25 %",              prod:1.25},
+  {a:"systeme",  b:"autodidacte", nom:"Veille technologique", eff:"Points R&D +30 %",            rnd:1.30},
+  {a:"commerce", b:"influence",   nom:"Force de vente",     eff:"Prix +15 %, conquête +15 %",    prix:1.15, conq:1.15},
+  {a:"nego",     b:"logistique",  nom:"Chaîne courte",      eff:"Composants −20 %",              comp:.80},
+  {a:"perfection",b:"soudure",    nom:"Atelier d'exception",eff:"Prix +12 %, production +10 %",  prix:1.12, prod:1.10},
+  {a:"endurance",b:"formation",   nom:"École de l'atelier", eff:"Le moral du binôme ne tombe plus sous 40", plancher:40},
+  {a:"systeme",  b:"logistique",  nom:"Ordonnancement fin", eff:"Production +18 %",              prod:1.18},
+  {a:"commerce", b:"nego",        nom:"Marge arrachée",     eff:"Prix +10 %, composants −10 %",  prix:1.10, comp:.90}
+];
+
+SC.RETRAITES = [
+  "part à la retraite. Pot dans l'atelier, discours trop long, tout le monde a pleuré.",
+  "raccroche le fer après une carrière entière ici.",
+  "prend sa retraite et laisse son établi impeccable.",
+  "s'en va profiter. Son remplaçant a été formé par ses soins."
+];

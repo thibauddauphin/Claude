@@ -313,16 +313,20 @@ function majEquipe(){
   q("candidature").hidden = !c;
   if(c){
     var car = SC.jeu.caractere(c.car);
-    q("cand-portrait").src = SC.dessin.portraitURL(c.graine);
+    q("cand-portrait").src = SC.dessin.portraitURL(c.graine, c.age);
     q("cand-portrait").alt = "Portrait de " + c.prenom + " " + c.nom;
     q("cand-nom").textContent = c.prenom + " " + c.nom;
-    q("cand-car").textContent = car.nom + " · " + c.poste.toLowerCase();
+    q("cand-car").textContent = car.nom + " · " + Math.round(c.age) + " ans"
+      + (c.origine ? " · vient de chez " + c.origine : " · " + c.poste.toLowerCase());
     q("cand-eff").textContent = car.eff;
-    q("cand-part").textContent = "demande " + (c.part*100).toLocaleString("fr-FR",{maximumFractionDigits:2}) + " % du chiffre d'affaires";
+    q("cand-part").textContent = (c.indemnite ? "indemnité " + eur(c.indemnite) + " · " : "")
+      + (c.part*100).toLocaleString("fr-FR",{maximumFractionDigits:2}) + " % du chiffre d'affaires";
+    q("candidature").classList.toggle("debauchage", !!c.origine);
+    q("embaucher").disabled = !!c.indemnite && S.cash < c.indemnite;
   }
 
   /* la liste n'est reconstruite que lorsque l'effectif change */
-  var sig = S.equipe.map(function(e){ return e.graine; }).join(",");
+  var sig = S.equipe.map(function(e){ return e.graine + ":" + (e.binome||0) + ":" + Math.floor(e.age/6); }).join(",");
   if(sig !== signatureEquipe){ construireEquipe(); signatureEquipe = sig; }
 
   S.equipe.forEach(function(e,i){
@@ -337,7 +341,12 @@ function majEquipe(){
     var cp = SC.jeu.coutPrime(S,i);
     r.prime.textContent = "Prime " + eur(cp);
     r.prime.disabled = S.cash < cp || m >= 99;
-    r.augmenter.disabled = m >= 99;
+    r.augmenter.disabled = m >= 99 || e.part >= e.partInitiale*4;
+    r.age.textContent = Math.round(e.age) + " ans · "
+      + Math.max(0, Math.round(e.anciennete/360)) + " an(s) de maison";
+    r.binome.textContent = appairage === e.graine ? "Annuler"
+      : appairage ? "Avec " + prenomDe(appairage)
+      : e.binome ? "Séparer" : "Binôme";
   });
 
   var masse = SC.jeu.masseSalariale(S);
@@ -350,6 +359,26 @@ function majEquipe(){
     : "Le moral suit vos prix, les arrêts de chaîne et les crises. Sous 45 %, la concurrence commence à débaucher.";
 }
 
+var appairage = null;
+function prenomDe(graine){
+  for(var i=0;i<S.equipe.length;i++) if(S.equipe[i].graine === graine) return S.equipe[i].prenom;
+  return "…";
+}
+function clicBinome(i){
+  var e = S.equipe[i];
+  if(!e) return;
+  if(appairage === e.graine){ appairage = null; }
+  else if(appairage){
+    var j = -1;
+    for(var k=0;k<S.equipe.length;k++) if(S.equipe[k].graine === appairage) j = k;
+    appairage = null;
+    if(j >= 0 && j !== i && SC.jeu.apparier(S, j, i)){ sonTech(); majJournal(); }
+  }
+  else if(e.binome){ SC.jeu.separer(S, i); }
+  else { appairage = e.graine; }
+  majHUD();
+}
+
 var refEquipe = [];
 function construireEquipe(){
   var g = q("equipe"); g.textContent = "";
@@ -360,19 +389,27 @@ function construireEquipe(){
     d.className = "fiche-emp";
     d.innerHTML =
       '<img class="portrait" alt="">' +
-      '<div class="emp-txt"><b></b><span class="emp-role"></span><span class="emp-eff"></span></div>' +
+      '<div class="emp-txt"><b></b><span class="emp-role"></span>' +
+        '<span class="emp-age"></span><span class="emp-eff"></span></div>' +
       '<div class="emp-moral"><div class="barre-moral"><i></i></div>' +
         '<div class="emp-chiffres"><span class="m"></span></div>' +
         '<div class="emp-chiffres"><span class="s"></span></div></div>' +
       '<div class="emp-actions"><button type="button" class="prime"></button>' +
-        '<button type="button" class="aug">Augmenter</button></div>';
+        '<button type="button" class="aug">Augmenter</button>' +
+        '<button type="button" class="duo"></button></div>';
     var img = d.querySelector(".portrait");
-    img.src = SC.dessin.portraitURL(e.graine);
+    img.src = SC.dessin.portraitURL(e.graine, e.age);
     img.alt = "Portrait de " + e.prenom + " " + e.nom;
     d.querySelector("b").textContent = e.prenom + " " + e.nom;
+    var duo = SC.jeu.partenaire(S, e);
+    var y = duo ? SC.jeu.synergie(e, duo) : null;
     d.querySelector(".emp-role").textContent = car.nom + " · " + e.poste.toLowerCase();
-    d.querySelector(".emp-eff").textContent = car.eff;
-    var bPrime = d.querySelector(".prime"), bAug = d.querySelector(".aug");
+    d.querySelector(".emp-eff").textContent = car.eff
+      + (duo ? " — en binôme avec " + duo.prenom + (y ? " · " + y.nom + " : " + y.eff : " (effets +50 %)") : "");
+    if(duo) d.classList.add("apparie");
+    if(e.forme) d.classList.add("forme");
+    var bPrime = d.querySelector(".prime"), bAug = d.querySelector(".aug"), bDuo = d.querySelector(".duo");
+    bDuo.addEventListener("click", function(){ clicBinome(i); });
     bPrime.addEventListener("click", function(){
       if(SC.jeu.prime(S,i)){ sonAchat(); majHUD(); }
     });
@@ -382,10 +419,25 @@ function construireEquipe(){
     g.appendChild(d);
     refEquipe.push({
       jauge:d.querySelector(".barre-moral"), barre:d.querySelector(".barre-moral i"),
-      moral:d.querySelector(".m"), part:d.querySelector(".s"),
-      prime:bPrime, augmenter:bAug
+      moral:d.querySelector(".m"), part:d.querySelector(".s"), age:d.querySelector(".emp-age"),
+      prime:bPrime, augmenter:bAug, binome:bDuo
     });
   });
+}
+
+function annoncerRetraites(liste){
+  var d = q("depart");
+  d.classList.remove("on");
+  d.classList.add("retraite","on");
+  d.textContent = liste.map(function(r){
+    return r.partant.prenom + " " + r.partant.nom + " part à la retraite ; "
+      + r.releve.prenom + " " + r.releve.nom + " prend la suite, formé" + " par ses soins.";
+  }).join(" ");
+  clearTimeout(minuteurDepart);
+  minuteurDepart = setTimeout(function(){ d.classList.remove("on","retraite"); }, 10000);
+  sonJalon();
+  SC.dessin.confetti();
+  majJournal();
 }
 
 var minuteurDepart = null;
@@ -393,6 +445,7 @@ function annoncerDeparts(partis){
   var d = q("depart");
   d.textContent = partis.map(function(e){ return e.prenom + " " + e.nom; }).join(", ")
     + (partis.length > 1 ? " quittent l'atelier." : " quitte l'atelier.");
+  d.classList.remove("retraite");
   d.classList.add("on");
   clearTimeout(minuteurDepart);
   minuteurDepart = setTimeout(function(){ d.classList.remove("on"); }, 9000);
@@ -637,6 +690,7 @@ function boucle(now){
   if(res.finEvenement) cacherEvenement();
   if(res.jalons){ sonJalon(); majJournal(); }
   if(res.partis) annoncerDeparts(res.partis);
+  if(res.retraites) annoncerRetraites(res.retraites);
 
   if(res.faites > 0){
     horlogeColis += dt;

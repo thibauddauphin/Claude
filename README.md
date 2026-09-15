@@ -33,6 +33,18 @@ prestige et les 34 jalons portent l'ensemble au-delà de la cinquantaine.
   casser les prix, laisser la chaîne à l'arrêt ou traverser une crise le fait
   tomber. Sous 45 %, les concurrents commencent à les débaucher ; à zéro, ils
   claquent la porte. Une augmentation ou une prime les retient.
+- **Carrières** — les employés vieillissent (une année tous les six minutes de
+  présence), leurs tempes blanchissent sur leur portrait, et vers soixante-cinq
+  ans ils partent à la retraite en formant leur remplaçant, qui hérite de leur
+  caractère. Chaque départ en retraite laisse un savoir-faire : + 1,5 % de
+  production, définitivement.
+- **Binômes** — deux personnes appariées majorent de moitié ce que chacune
+  apporte, et huit paires de caractères ouvrent une synergie nommée :
+  compagnonnage, veille technologique, chaîne courte, force de vente… Si l'un
+  s'en va, l'autre encaisse le coup.
+- **Débauchage** — au-delà de 40 % de part de marché, les candidatures viennent
+  de chez les concurrents : une indemnité de transfert à payer, un rival
+  affaibli, et quelqu'un de plus cher que la moyenne.
 - **Jalons** — trente-quatre succès permanents, chacun accordant un bonus de
   production qui survit à toutes les remises à zéro.
 - **Progression hors ligne** — l'atelier tourne à 60 % de sa cadence en votre
