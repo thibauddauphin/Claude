@@ -78,7 +78,7 @@ class EtatPartie {
       secondesJouees: secondesJouees,
       equipe: <Employe>[],
       journal: <EntreeJournal>[],
-      historiqueRevenu: List<double>.filled(60, 0),
+      historiqueRevenu: List<double>.filled(60, 0, growable: true),
       derniereSauvegarde: DateTime.now(),
     );
     if (ameliorations.contains('heritage')) {

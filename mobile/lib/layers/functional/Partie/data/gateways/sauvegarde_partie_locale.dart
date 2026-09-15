@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import '../../domain/entities/etat_partie.dart';
 import '../../domain/gateways/sauvegarde_partie_gateway.dart';
 import '../models/etat_partie_dto.dart';
@@ -23,7 +25,8 @@ class SauvegardePartieLocale implements SauvegardePartieGateway {
       final json = jsonDecode(brut);
       if (json is! Map<String, dynamic>) return null;
       return EtatPartieDto.depuisJson(json);
-    } catch (_) {
+    } catch (e, pile) {
+      _signaler('lecture', e, pile);
       return null;
     }
   }
@@ -33,8 +36,10 @@ class SauvegardePartieLocale implements SauvegardePartieGateway {
     etat.derniereSauvegarde = DateTime.now();
     try {
       await _preferences.setString(cle, jsonEncode(EtatPartieDto.versJson(etat)));
-    } catch (_) {
-      // Une sauvegarde manquée ne doit pas interrompre la partie.
+    } catch (e, pile) {
+      // Une sauvegarde manquée ne doit pas interrompre la partie, mais elle ne
+      // doit pas non plus disparaître sans laisser de trace.
+      _signaler('écriture', e, pile);
     }
   }
 
@@ -42,7 +47,26 @@ class SauvegardePartieLocale implements SauvegardePartieGateway {
   Future<void> effacer() async {
     try {
       await _preferences.remove(cle);
-    } catch (_) {}
+    } catch (e, pile) {
+      _signaler('effacement', e, pile);
+    }
+  }
+
+  /// Dernier échec rencontré, pour qu'un stockage cassé reste diagnosticable.
+  static Object? dernierEchec;
+
+  void _signaler(String operation, Object erreur, StackTrace pile) {
+    dernierEchec = erreur;
+    if (kDebugMode) {
+      debugPrint('Sauvegarde — $operation impossible : $erreur');
+    }
+    FlutterError.reportError(FlutterErrorDetails(
+      exception: erreur,
+      stack: pile,
+      library: 'sauvegarde de la partie',
+      context: ErrorDescription('lors de l\'$operation de la partie'),
+      silent: true,
+    ));
   }
 }
 

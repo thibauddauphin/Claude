@@ -30,8 +30,10 @@ class PartieCubit extends Cubit<PartieState> {
     GererEquipeUseCase? equipe,
     PrestigeUseCase? prestige,
     RattraperHorsLigneUseCase? rattrapage,
+    DateTime Function()? horloge,
     // ignore: prefer_initializing_formals — un paramètre nommé ne peut pas être privé
   })  : _sauvegarde = sauvegarde,
+        _horloge = horloge ?? DateTime.now,
         _avancer = avancer ?? AvancerPartieUseCase(),
         _atelier = atelier ?? const GererAtelierUseCase(),
         _equipe = equipe ?? GererEquipeUseCase(),
@@ -46,11 +48,16 @@ class PartieCubit extends Cubit<PartieState> {
   final PrestigeUseCase _prestige;
   final RattraperHorsLigneUseCase _rattrapage;
 
+  /// Source de temps, injectable : la boucle mesure le temps réel écoulé
+  /// plutôt que de supposer que le minuteur tient sa cadence, et les tests
+  /// peuvent la piloter.
+  final DateTime Function() _horloge;
+
   /// Repeint la scène sans reconstruire les panneaux.
   final battement = ValueNotifier<int>(0);
 
   EtatPartie? _partie;
-  Timer? _horloge;
+  Timer? _minuteur;
   Duration _dernierInstant = Duration.zero;
   double _depuisPanneaux = 0;
   double _depuisSeconde = 0;
@@ -70,11 +77,11 @@ class PartieCubit extends Cubit<PartieState> {
   }
 
   void _lancerHorloge() {
-    _horloge?.cancel();
-    final depart = DateTime.now();
+    _minuteur?.cancel();
+    final depart = _horloge();
     _dernierInstant = Duration.zero;
-    _horloge = Timer.periodic(const Duration(milliseconds: 16), (_) {
-      final maintenant = DateTime.now().difference(depart);
+    _minuteur = Timer.periodic(const Duration(milliseconds: 16), (_) {
+      final maintenant = _horloge().difference(depart);
       final dt = min(.5, (maintenant - _dernierInstant).inMicroseconds / 1e6);
       _dernierInstant = maintenant;
       if (dt > 0) _avancerDe(dt);
@@ -232,8 +239,8 @@ class PartieCubit extends Cubit<PartieState> {
 
   /// Appelé quand l'application passe en arrière-plan.
   Future<void> mettreEnVeille() async {
-    _horloge?.cancel();
-    _horloge = null;
+    _minuteur?.cancel();
+    _minuteur = null;
     final partie = _partie;
     if (partie != null) await _sauvegarde.ecrire(partie);
   }
@@ -241,7 +248,7 @@ class PartieCubit extends Cubit<PartieState> {
   /// Appelé au retour au premier plan : on rattrape l'absence.
   void reprendre() {
     final partie = _partie;
-    if (partie == null || _horloge != null) return;
+    if (partie == null || _minuteur != null) return;
     final bilan = _rattrapage(partie);
     _emettre(bilan: bilan);
     _lancerHorloge();
@@ -282,7 +289,7 @@ class PartieCubit extends Cubit<PartieState> {
 
   @override
   Future<void> close() {
-    _horloge?.cancel();
+    _minuteur?.cancel();
     battement.dispose();
     return super.close();
   }

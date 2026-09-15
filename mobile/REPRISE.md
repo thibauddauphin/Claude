@@ -14,24 +14,25 @@ référence : toute règle qui diverge est un bogue du portage.
   l'équipe reste soudée quand l'atelier est bien tenu et se fait débaucher quand
   on brade. Ce sont ces tests qui garantissent que le portage n'a pas dérivé.
 
+## Fait (suite)
+
+- **Persistance** vérifiée sur une vraie plateforme : aller-retour complet,
+  sauvegarde corrompue, stockage indisponible.
+- **Peintres** : quinze décors, douze vignettes, quinze sprites, quarante
+  icônes, portraits qui vieillissent, particules.
+- **Interface téléphone** : bandeau d'instruments, scène tactile, cinq onglets.
+- **Cycle de vie Android** : sauvegarde en pause, rattrapage hors ligne au retour.
+
 ## Reste à faire
 
-1. **Persistance** — `technical/Persistance` + `data/gateways` : sérialiser
-   `EtatPartie` en JSON dans `shared_preferences`.
-2. **Peintres** — porter `../jeu/dessin.js` en `CustomPainter` :
-   quinze décors d'ère, douze vignettes de production, quinze sprites de gamme,
-   quarante icônes de recherche, portraits générés depuis une graine, particules.
-   La grille logique est 384 × 216, agrandie sans lissage
-   (`Paint()..isAntiAlias = false`, `canvas.scale`).
-3. **Cubit** — `PartieCubit` : possède l'agrégat mutable, fait tourner un
-   `Ticker` à 60 Hz pour la scène, et émet un `PartieState` **immuable** à ~10 Hz
-   pour les panneaux. Séparer les deux cadences est délibéré : recopier
-   l'agrégat soixante fois par seconde ne servirait à rien.
-4. **Écrans** — refonte pour le téléphone : bandeau d'instruments compact,
-   scène en haut, navigation basse à cinq onglets (Atelier, Production,
-   Recherche, Équipe, Marché). Le bureau à trois colonnes ne se transpose pas.
-5. **Cycle de vie Android** — `WidgetsBindingObserver` : sauver en pause,
-   rattraper le hors-ligne à la reprise.
+1. **Icône et nom de l'application**, écran de démarrage.
+2. **Annonce d'ère** plein écran et bandeau d'événement, présents dans la
+   version web et pas encore portés.
+3. **Onglet Conglomérat** : le second niveau de prestige n'a pas d'écran.
+4. **Notifications** (`POST_NOTIFICATIONS`, Android 13+) — décision de produit
+   en attente : rappeler le joueur quand la chaîne s'arrête ou que les douze
+   heures hors ligne sont pleines.
+5. **Signature de l'APK** pour une distribution hors Play Store.
 
 ## Régénérer les tables du catalogue
 
