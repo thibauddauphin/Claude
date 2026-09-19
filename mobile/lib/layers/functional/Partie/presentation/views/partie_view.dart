@@ -97,9 +97,7 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
         if (partie == null) {
           return Scaffold(
             backgroundColor: p.fond,
-            body: Center(
-              child: CircularProgressIndicator(color: p.accent),
-            ),
+            body: Center(child: CircularProgressIndicator(color: p.accent)),
           );
         }
         final cubit = context.read<PartieCubit>();
@@ -111,25 +109,36 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
             bottom: false,
             child: Column(
               children: [
-                _BandeauInstruments(etat: partie, ere: '${ere.annee} · ${ere.nom}'),
-                Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    SceneAtelier(
-                      etat: partie,
-                      battement: cubit.battement,
-                      onAssembler: cubit.assembler,
-                    ),
-                    BanniereEvenement(evenement: partie.evenement),
-                    if (etat.ereAnnoncee != null)
-                      Positioned.fill(
-                        child: AnnonceEre(
-                          key: ValueKey(etat.ereAnnoncee),
-                          ere: etat.ereAnnoncee!,
-                          onTerminee: cubit.annonceEreTerminee,
-                        ),
+                _BandeauInstruments(
+                  etat: partie,
+                  ere: '${ere.annee} · ${ere.nom}',
+                ),
+                ConstrainedBox(
+                  /* La scène garde son rapport 16/9 : sans plafond, une fenêtre
+                     basse la laisse prendre toute la hauteur et les panneaux
+                     débordent hors de l'écran. */
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(context).height * .42,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      SceneAtelier(
+                        etat: partie,
+                        battement: cubit.battement,
+                        onAssembler: cubit.assembler,
                       ),
-                  ],
+                      BanniereEvenement(evenement: partie.evenement),
+                      if (etat.ereAnnoncee != null)
+                        Positioned.fill(
+                          child: AnnonceEre(
+                            key: ValueKey(etat.ereAnnoncee),
+                            ere: etat.ereAnnoncee!,
+                            onTerminee: cubit.annonceEreTerminee,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 _BandeauCadence(etat: partie),
                 Expanded(
@@ -139,7 +148,10 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
                       AtelierView(etat: partie),
                       ProductionView(etat: partie),
                       RechercheView(etat: partie),
-                      EquipeView(etat: partie, appairage: etat.appairageEnCours),
+                      EquipeView(
+                        etat: partie,
+                        appairage: etat.appairageEnCours,
+                      ),
                       MarcheView(etat: partie),
                     ],
                   ),
@@ -155,11 +167,26 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
             height: 62,
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.handyman_outlined), label: 'Atelier'),
-              NavigationDestination(icon: Icon(Icons.precision_manufacturing_outlined), label: 'Production'),
-              NavigationDestination(icon: Icon(Icons.science_outlined), label: 'R&D'),
-              NavigationDestination(icon: Icon(Icons.groups_outlined), label: 'Équipe'),
-              NavigationDestination(icon: Icon(Icons.insights_outlined), label: 'Marché'),
+              NavigationDestination(
+                icon: Icon(Icons.handyman_outlined),
+                label: 'Atelier',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.precision_manufacturing_outlined),
+                label: 'Production',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.science_outlined),
+                label: 'R&D',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.groups_outlined),
+                label: 'Équipe',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.insights_outlined),
+                label: 'Marché',
+              ),
             ],
           ),
         );
@@ -169,17 +196,26 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
 
   /// Un avis bref en bas d'écran : ni dialogue à refermer, ni ligne noyée
   /// dans le journal.
-  void _annoncer(BuildContext context, String texte, {required bool favorable}) {
+  void _annoncer(
+    BuildContext context,
+    String texte, {
+    required bool favorable,
+  }) {
     final p = context.palette;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(texte, style: ThemeAtelier.corps(p, couleur: p.surAccent)),
-        backgroundColor: favorable ? p.bon : p.mauvais,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-      ));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            texte,
+            style: ThemeAtelier.corps(p, couleur: p.surAccent),
+          ),
+          backgroundColor: favorable ? p.bon : p.mauvais,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+        ),
+      );
   }
 
   void _montrerRetour(BuildContext context, dynamic bilan) {
@@ -189,24 +225,35 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
       barrierDismissible: false,
       builder: (dialogue) => AlertDialog(
         backgroundColor: p.panneau,
-        title: Text('Pendant votre absence', style: ThemeAtelier.titre(p, taille: 21)),
+        title: Text(
+          'Pendant votre absence',
+          style: ThemeAtelier.titre(p, taille: 21),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("L'atelier a tourné au ralenti pendant ${Nombres.duree(bilan.duree)}.",
-                style: ThemeAtelier.corps(p, couleur: p.encreDouce)),
+            Text(
+              "L'atelier a tourné au ralenti pendant ${Nombres.duree(bilan.duree)}.",
+              style: ThemeAtelier.corps(p, couleur: p.encreDouce),
+            ),
             const SizedBox(height: 14),
             Row(
               children: [
-                Expanded(child: Chiffre(
+                Expanded(
+                  child: Chiffre(
                     intitule: 'Unités produites',
                     valeur: Nombres.format(bilan.unites),
-                    couleur: p.accent)),
-                Expanded(child: Chiffre(
+                    couleur: p.accent,
+                  ),
+                ),
+                Expanded(
+                  child: Chiffre(
                     intitule: 'Recette',
                     valeur: Nombres.euros(bilan.recette),
-                    couleur: p.accent)),
+                    couleur: p.accent,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 14),
@@ -220,7 +267,10 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
         ),
         actions: [
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: p.accent, foregroundColor: p.surAccent),
+            style: FilledButton.styleFrom(
+              backgroundColor: p.accent,
+              foregroundColor: p.surAccent,
+            ),
             onPressed: () {
               Navigator.of(dialogue).pop();
               context.read<PartieCubit>().masquerBilanHorsLigne();
@@ -243,7 +293,8 @@ class _BandeauInstruments extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     final cadence = Regles.cadence(etat);
-    final bloquee = cadence > 0 && etat.composants < Regles.besoinComposants(etat);
+    final bloquee =
+        cadence > 0 && etat.composants < Regles.besoinComposants(etat);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
@@ -259,43 +310,53 @@ class _BandeauInstruments extends StatelessWidget {
               Text('Silicium & Cie', style: ThemeAtelier.titre(p, taille: 18)),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(ere,
-                    style: ThemeAtelier.etiquette(p, couleur: p.encrePale),
-                    overflow: TextOverflow.ellipsis),
+                child: Text(
+                  ere,
+                  style: ThemeAtelier.etiquette(p, couleur: p.encrePale),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                Afficheur(etiquette: 'Trésorerie', valeur: Nombres.euros(etat.tresorerie)),
-                const SizedBox(width: 6),
+          /* Les cinq cadrans passent à la ligne plutôt que de sortir de
+             l'écran : une bande qui défile cache ce qu'elle déborde, et rien
+             n'indique au joueur qu'il faut la faire glisser. */
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              Afficheur(
+                etiquette: 'Trésorerie',
+                valeur: Nombres.euros(etat.tresorerie),
+              ),
+              Afficheur(
+                etiquette: 'Revenu',
+                valeur: '${Nombres.euros(cadence * Regles.prixUnite(etat))}/s',
+              ),
+              Afficheur(
+                etiquette: 'Composants',
+                valeur: Nombres.format(etat.composants),
+                alerte: bloquee,
+              ),
+              Afficheur(
+                etiquette: 'Points R&D',
+                valeur: Nombres.format(etat.pointsRecherche),
+              ),
+              Afficheur(
+                etiquette: 'Part de marché',
+                valeur: Nombres.pourcent(Regles.partMarche(etat)),
+              ),
+              if (etat.actions >= 1) ...[
                 Afficheur(
-                    etiquette: 'Revenu',
-                    valeur: '${Nombres.euros(cadence * Regles.prixUnite(etat))}/s'),
-                const SizedBox(width: 6),
-                Afficheur(
-                    etiquette: 'Composants',
-                    valeur: Nombres.format(etat.composants),
-                    alerte: bloquee),
-                const SizedBox(width: 6),
-                Afficheur(etiquette: 'Points R&D', valeur: Nombres.format(etat.pointsRecherche)),
-                const SizedBox(width: 6),
-                Afficheur(
-                    etiquette: 'Part de marché',
-                    valeur: Nombres.pourcent(Regles.partMarche(etat))),
-                if (etat.actions >= 1) ...[
-                  const SizedBox(width: 6),
-                  Afficheur(etiquette: 'Actions', valeur: Nombres.format(etat.actions.floorToDouble())),
-                ],
-                if (etat.parts >= 1) ...[
-                  const SizedBox(width: 6),
-                  Afficheur(etiquette: 'Parts', valeur: '${etat.parts}'),
-                ],
+                  etiquette: 'Actions',
+                  valeur: Nombres.format(etat.actions.floorToDouble()),
+                ),
               ],
-            ),
+              if (etat.parts >= 1) ...[
+                Afficheur(etiquette: 'Parts', valeur: '${etat.parts}'),
+              ],
+            ],
           ),
         ],
       ),
@@ -312,7 +373,8 @@ class _BandeauCadence extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     final cadence = Regles.cadence(etat);
-    final bloquee = cadence > 0 && etat.composants < Regles.besoinComposants(etat);
+    final bloquee =
+        cadence > 0 && etat.composants < Regles.besoinComposants(etat);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
@@ -327,19 +389,23 @@ class _BandeauCadence extends StatelessWidget {
               bloquee
                   ? 'Chaîne à l’arrêt — stock de composants épuisé'
                   : 'Cadence ${Nombres.format(cadence)} u/s · '
-                      'sortie ${Nombres.euros(cadence * Regles.prixUnite(etat))}/s',
-              style: ThemeAtelier.chiffres(p,
-                  couleur: bloquee ? p.mauvais : p.encreDouce,
-                  taille: 11,
-                  graisse: FontWeight.w400),
+                        'sortie ${Nombres.euros(cadence * Regles.prixUnite(etat))}/s',
+              style: ThemeAtelier.chiffres(
+                p,
+                couleur: bloquee ? p.mauvais : p.encreDouce,
+                taille: 11,
+                graisse: FontWeight.w400,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           // L'indication ne sert qu'au tout début ; elle se retire une fois
           // le geste acquis, et laisse la place aux chiffres.
           if (etat.unitesVendues < 20)
-            Text('Touchez l’atelier',
-                style: ThemeAtelier.etiquette(p, couleur: p.encrePale, taille: 9)),
+            Text(
+              'Touchez l’atelier',
+              style: ThemeAtelier.etiquette(p, couleur: p.encrePale, taille: 9),
+            ),
         ],
       ),
     );

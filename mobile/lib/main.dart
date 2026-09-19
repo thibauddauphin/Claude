@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'layers/functional/Partie/data/gateways/sauvegarde_partie_locale.dart';
 import 'layers/functional/Partie/presentation/cubit/partie_cubit.dart';
 import 'layers/functional/Partie/presentation/views/partie_view.dart';
+import 'layers/technical/MiseEnPage/cadre_telephone.dart';
 import 'layers/technical/Persistance/preferences_partagees.dart';
 import 'layers/technical/Theme/theme_atelier.dart';
 
@@ -27,6 +28,7 @@ class ApplicationAtelier extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeAtelier.clair(),
       darkTheme: ThemeAtelier.sombre(),
+      builder: (_, enfant) => CadreTelephone(enfant: enfant ?? const SizedBox()),
       home: BlocProvider(
         create: (_) => PartieCubit(
           sauvegarde: SauvegardePartieLocale(PreferencesPartagees()),

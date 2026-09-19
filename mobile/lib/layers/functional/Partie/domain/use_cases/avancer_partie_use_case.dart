@@ -65,10 +65,16 @@ class AvancerPartieUseCase {
     e.tampon += cadence * dt;
     if (e.tampon >= 1) {
       final voulu = e.tampon.floor();
-      final possible = (e.composants / besoin).floor();
-      produites = min(voulu, possible).toDouble();
+      final montees = min(voulu, (e.composants / besoin).floor()).toDouble();
       e.tampon = max(0, e.tampon - voulu);
-      if (produites > 0) recette = encaisser(e, produites);
+      if (montees > 0) recette = encaisser(e, montees);
+      /* Tant qu'il reste quelqu'un à l'atelier, il ne s'arrête pas : ce que
+         les composants ne couvrent pas part en bricolage. */
+      final bricolees = e.equipe.isEmpty ? 0.0 : voulu - montees;
+      if (bricolees > 0) {
+        recette += encaisser(e, bricolees, Regles.partBricolage);
+      }
+      produites = montees + bricolees;
     }
 
     final estBloquee = cadence > 0 && e.composants < besoin;
@@ -88,13 +94,18 @@ class AvancerPartieUseCase {
   }
 
   /// Encaisse la vente, paie l'équipe et crédite recherche et conquête.
-  static double encaisser(EtatPartie e, double unites) {
-    final brut = unites * Regles.prixUnite(e);
+  /// [part] vaut 1 pour une unité assemblée normalement, [Regles.partBricolage]
+  /// pour une unité montée sans composants : moins rentable, mais l'atelier
+  /// n'est jamais à l'arrêt faute de stock.
+  static double encaisser(EtatPartie e, double unites, [double part = 1]) {
+    final brut = unites * Regles.prixUnite(e) * part;
     final net = brut * (1 - Regles.masseSalariale(e));
     e.tresorerie += net;
     e.chiffreAffaires += brut;
     e.chiffreAffairesCumule += brut;
-    e.composants = max(0, e.composants - unites * Regles.besoinComposants(e));
+    if (part == 1) {
+      e.composants = max(0, e.composants - unites * Regles.besoinComposants(e));
+    }
     e.unitesVendues += unites;
     e.puissance += unites * pow(1 + e.gamme, 1.5) * Regles.conquete(e);
     e.pointsRecherche += unites * gammes[e.gamme].pointsRecherche * Regles.multRecherche(e);

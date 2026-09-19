@@ -134,12 +134,34 @@ class Regles {
   static double prixComposant(EtatPartie e) =>
       gamme(e).prixComposant * multPrixComposant(e);
 
+  /// Ce qu'une paire de mains vaut face à la meilleure machine en service.
+  static const double partMain = .5;
+
+  /// Une unité montée sans composants, de bric et de broc.
+  static const double partBricolage = .3;
+
+  /// Ce que l'équipe assemble de ses mains, en plus des machines.
+  ///
+  /// C'est pour cela qu'on embauche : l'atelier continue de produire quand
+  /// personne ne clique. Le taux suit la meilleure machine en service, donc
+  /// il reste utile à toutes les ères sans courbe inventée pour l'occasion.
+  static double cadenceEquipe(EtatPartie e) {
+    if (e.equipe.isEmpty) return 0;
+    var meilleure = stations[0].cadence;
+    for (var i = 0; i < stations.length; i++) {
+      if (e.exemplaires[i] > 0 && stations[i].cadence > meilleure) {
+        meilleure = stations[i].cadence;
+      }
+    }
+    return e.equipe.length * meilleure * partMain;
+  }
+
   static double cadence(EtatPartie e) {
     var u = 0.0;
     for (var i = 0; i < stations.length; i++) {
       u += e.exemplaires[i] * stations[i].cadence;
     }
-    return u * multProduction(e);
+    return (u + cadenceEquipe(e)) * multProduction(e);
   }
 
   static double forceClic(EtatPartie e) =>

@@ -50,11 +50,15 @@ class RattraperHorsLigneUseCase {
       e.secondesJouees += pas;
       _approvisionner(e, pas);
       final besoin = Regles.besoinComposants(e);
-      final unites = min(
-        Regles.cadence(e) * Regles.rendementHorsLigne * pas,
-        e.composants / besoin,
-      );
-      if (unites > 0) AvancerPartieUseCase.encaisser(e, unites);
+      final voulu = Regles.cadence(e) * Regles.rendementHorsLigne * pas;
+      final montees = besoin > 0 ? min(voulu, e.composants / besoin) : voulu;
+      if (montees > 0) AvancerPartieUseCase.encaisser(e, montees);
+      /* Ce que les composants ne couvrent pas, l'équipe le bricole : tant
+         qu'il y a quelqu'un à l'atelier, il ne reste jamais à l'arrêt. */
+      if (voulu - montees > 0 && e.equipe.isNotEmpty) {
+        AvancerPartieUseCase.encaisser(
+            e, voulu - montees, Regles.partBricolage);
+      }
       avancer.avancerRivaux(e, pas);
     }
     AvancerPartieUseCase.verifierJalons(e);

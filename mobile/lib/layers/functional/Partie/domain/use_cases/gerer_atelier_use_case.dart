@@ -15,11 +15,22 @@ enum EffetRecherche { aucun, acquise, nouvelleEre }
 class GererAtelierUseCase {
   const GererAtelierUseCase();
 
-  /// Assemble à la main. Renvoie la recette, ou zéro faute de composants.
+  /// Assemble à la main. Un clic ne reste jamais sans effet.
+  ///
+  /// Ce que le stock couvre part au prix fort, le reste est bricolé. Sans un
+  /// sou et sans composants on peut donc toujours repartir à la main, et
+  /// acheter des composants garde tout son intérêt : c'est trois fois plus
+  /// rentable.
   double assembler(EtatPartie e) {
     final unites = Regles.forceClic(e);
-    if (e.composants < unites * Regles.besoinComposants(e)) return 0;
-    return AvancerPartieUseCase.encaisser(e, unites);
+    final besoin = Regles.besoinComposants(e);
+    final montees = besoin > 0 ? min(unites, e.composants / besoin) : unites;
+    var recette = montees > 0 ? AvancerPartieUseCase.encaisser(e, montees) : 0.0;
+    if (unites - montees > 0) {
+      recette += AvancerPartieUseCase.encaisser(
+          e, unites - montees, Regles.partBricolage);
+    }
+    return recette;
   }
 
   /// Achète un lot de composants, ou autant que la trésorerie le permet.

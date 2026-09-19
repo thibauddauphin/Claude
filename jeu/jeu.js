@@ -5,6 +5,8 @@
 var CLE = "silicium-cie-v3";
 var PLAFOND_HORS_LIGNE = 12*3600;   /* 12 h de production accumulée au maximum */
 var RENDEMENT_HORS_LIGNE = .6;      /* l'atelier tourne au ralenti en votre absence */
+var PART_BRICOLAGE = .3;            /* une unité montée sans composants vaut moins cher */
+var PART_MAIN = .5;                 /* ce qu'une paire de mains vaut face à la meilleure machine */
 
 /* Ce qui survit à une remise à zéro : le palmarès et le patrimoine. */
 function permanent(S){
@@ -179,10 +181,21 @@ function besoinComps(S){ return produit(S).comps * (a(S,"pcb") ? .8 : 1); }
 function prixUnite(S){ return produit(S).prix * multPrix(S); }
 function prixComp(S){ return produit(S).pc * multCompPrix(S); }
 
+/* Ce que l'équipe assemble de ses mains, en plus des machines. On embauche
+   pour ça : c'est ce qui fait tourner l'atelier quand personne ne clique.
+   Le taux suit la meilleure machine en service, donc il reste utile à
+   toutes les ères sans courbe inventée pour l'occasion. */
+function cadenceEquipe(S){
+  if(!S.equipe.length) return 0;
+  var meilleure = SC.STATIONS[0].taux;
+  for(var i=0;i<SC.STATIONS.length;i++)
+    if(S.stations[i] > 0 && SC.STATIONS[i].taux > meilleure) meilleure = SC.STATIONS[i].taux;
+  return S.equipe.length * meilleure * PART_MAIN;
+}
 function cadence(S){
   var u = 0;
   for(var i=0;i<SC.STATIONS.length;i++) u += S.stations[i] * SC.STATIONS[i].taux;
-  return u * multProd(S);
+  return (u + cadenceEquipe(S)) * multProd(S);
 }
 function forceClic(S){ return (a(S,"fer") ? 4 : 1) * multActions(S) * multParts(S); }
 function coutStation(S,i){
@@ -516,11 +529,15 @@ function majEquipe(S, dt, bloque){
 
 /* ----------------------------- tour de jeu ----------------------------- */
 
-function encaisser(S, u){
-  var gain = u * prixUnite(S);
+/* `part` vaut 1 pour une unité assemblée normalement, PART_BRICOLAGE pour une
+   unité montée de bric et de broc, sans composants : moins rentable, mais
+   l'atelier n'est jamais à l'arrêt faute de stock. */
+function encaisser(S, u, part){
+  if(part === undefined) part = 1;
+  var gain = u * prixUnite(S) * part;
   var net = gain * (1 - masseSalariale(S));
   S.cash += net; S.ca += gain; S.caVie += gain;
-  S.comps = Math.max(0, S.comps - u*besoinComps(S));
+  if(part === 1) S.comps = Math.max(0, S.comps - u*besoinComps(S));
   S.unites += u;
   S.puissance += u * Math.pow(1 + S.gamme, 1.5) * conquete(S);
   S.rnd += u * produit(S).rnd * multRnd(S);
@@ -613,8 +630,12 @@ function rattraper(S){
     S.joue += pas;
     approvisionner(S, pas);
     var besoin = besoinComps(S);
-    var u = Math.min(cadence(S)*RENDEMENT_HORS_LIGNE*pas, S.comps/besoin);
-    if(u > 0) encaisser(S, u);
+    var voulu = cadence(S)*RENDEMENT_HORS_LIGNE*pas;
+    var montees = besoin > 0 ? Math.min(voulu, S.comps/besoin) : voulu;
+    if(montees > 0) encaisser(S, montees);
+    /* Ce que les composants ne couvrent pas, l'équipe le bricole : tant qu'il
+       y a quelqu'un à l'atelier, il ne reste jamais à l'arrêt. */
+    if(voulu - montees > 0 && S.equipe.length) encaisser(S, voulu - montees, PART_BRICOLAGE);
     majRivaux(S, pas);          /* le marché ne vous attend pas */
   }
   verifierJalons(S);
@@ -645,10 +666,16 @@ function acheterTech(S,i){
   noter(S, "Brevet déposé : " + t.nom.toLowerCase() + ".");
   return true;
 }
+/* Un clic ne reste jamais sans effet : ce que le stock couvre part au prix
+   fort, le reste est bricolé. Sans un sou et sans composants, on peut donc
+   toujours repartir à la main — acheter des composants garde son intérêt,
+   c'est trois fois plus rentable. */
 function assembler(S){
-  var u = forceClic(S);
-  if(S.comps < u*besoinComps(S)) return 0;
-  return encaisser(S, u);
+  var u = forceClic(S), besoin = besoinComps(S);
+  var montees = besoin > 0 ? Math.min(u, S.comps/besoin) : u;
+  var net = montees > 0 ? encaisser(S, montees) : 0;
+  if(u - montees > 0) net += encaisser(S, u - montees, PART_BRICOLAGE);
+  return net;
 }
 /* Achète un lot, ou autant que la trésorerie le permet : un atelier à sec doit
    toujours pouvoir repartir, sinon dépenser jusqu'au dernier euro rend la
