@@ -40,6 +40,11 @@ class EtatPartie {
     this.tampon = 0,
     this.prochainEvenement = 40,
     this.prochainCandidat = 40,
+    this.resultatExercice = 0,
+    this.chargesExercice = 0,
+    this.prochainExercice = 360, // une année de jeu ; voir Regles.secondesParAnnee
+    this.dernierImpot = 0,
+    this.dernierResultat = 0,
   });
 
   /// Une partie neuve : un garage, trente euros et douze composants.
@@ -91,6 +96,21 @@ class EtatPartie {
   double tresorerie;
   double composants;
   double pointsRecherche;
+
+  /// Ce que l'exercice en cours a dégagé : recettes moins achats et charges.
+  /// C'est là-dessus que tombe l'impôt à la clôture.
+  double resultatExercice;
+
+  /// Charges payées depuis l'ouverture de l'exercice, pour le compte de
+  /// résultat affiché au joueur.
+  double chargesExercice;
+
+  /// Instant de la prochaine clôture, en secondes jouées.
+  double prochainExercice;
+
+  /// Dernier impôt acquitté et dernier résultat arrêté, pour l'affichage.
+  double dernierImpot;
+  double dernierResultat;
 
   /// Nombre d'exemplaires possédés de chaque moyen de production.
   final List<int> exemplaires;

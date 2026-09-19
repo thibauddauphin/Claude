@@ -1,91 +1,18 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:silicium_et_cie/layers/functional/Partie/domain/catalogue/stations.dart';
+
+// Le joueur simulé est partagé avec « dart run tool/rythme.dart » : deux
+// copies finiraient par mesurer deux jeux différents.
+import '../../tool/joueur_simule.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/domain/catalogue/technologies.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/domain/entities/etat_partie.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/domain/regles.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/domain/use_cases/avancer_partie_use_case.dart';
-import 'package:silicium_et_cie/layers/functional/Partie/domain/use_cases/gerer_atelier_use_case.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/domain/use_cases/gerer_equipe_use_case.dart';
 
 /// Rejoue une partie sans interface, comme le fait outils/equilibrage.js côté web,
 /// pour vérifier que le portage Dart tient le même rythme que la version calibrée.
-({Map<int, double> arrivees, double fin, EtatPartie etat}) simuler({
-  required int graine,
-  double heuresMax = 40,
-  double marge = 1,
-}) {
-  final hasard = Random(graine);
-  final etat = EtatPartie.neuve()..marge = marge;
-  final avancer = AvancerPartieUseCase(hasard: hasard);
-  final atelier = const GererAtelierUseCase();
-  final equipe = GererEquipeUseCase(hasard: hasard);
-
-  const dt = 2.0;
-  const periodeDecision = 4.0;
-  var t = 0.0;
-  var prochaine = 0.0;
-  final arrivees = <int, double>{0: 0};
-
-  void decider() {
-    if (Regles.cadence(etat) < 3) {
-      for (var c = 0; c < 12; c++) {
-        atelier.assembler(etat);
-      }
-    }
-    if (etat.candidat != null) equipe.embaucher(etat);
-    for (var i = 0; i < etat.equipe.length; i++) {
-      if (etat.equipe[i].moral < 35) equipe.augmenter(etat, i);
-    }
-    for (var i = 0; i < technologies.length; i++) {
-      if (!etat.possede(technologies[i].id) &&
-          etat.pointsRecherche >= Regles.coutTechnologie(etat, i)) {
-        atelier.acheterTechnologie(etat, i);
-      }
-    }
-    final besoin = Regles.besoinComposants(etat);
-    final cadence = Regles.cadence(etat);
-    final prix = Regles.prixComposant(etat);
-    for (var n = 0; n < 30 && etat.composants < besoin * max(cadence, 1) * 90; n++) {
-      if (etat.tresorerie < Regles.lotComposants(etat) * prix) break;
-      if (!atelier.acheterComposants(etat)) break;
-    }
-    final reserve = etat.possede('appro')
-        ? besoin * cadence * prix * 60
-        : besoin * cadence * prix * 180;
-    for (var tour = 0; tour < 8; tour++) {
-      var meilleur = -1;
-      var note = 0.0;
-      for (var k = 0; k < stations.length; k++) {
-        final cout = Regles.coutStation(etat, k);
-        if (cout > etat.tresorerie - reserve) continue;
-        final rapport = stations[k].cadence / cout;
-        if (rapport > note) {
-          note = rapport;
-          meilleur = k;
-        }
-      }
-      if (meilleur < 0) break;
-      atelier.acheterStation(etat, meilleur);
-    }
-  }
-
-  final limite = heuresMax * 3600;
-  while (t < limite) {
-    if (t >= prochaine) {
-      decider();
-      prochaine = t + periodeDecision;
-    }
-    avancer(etat, dt);
-    t += dt;
-    final ere = Regles.ereCourante(etat);
-    arrivees.putIfAbsent(ere, () => t);
-    if (ere == 14 && etat.technologies.length == technologies.length) break;
-  }
-  return (arrivees: arrivees, fin: t, etat: etat);
-}
-
 void main() {
   group('le portage tient le rythme de la version calibrée', () {
     test('une partie complète dure entre quinze et trente heures', () {

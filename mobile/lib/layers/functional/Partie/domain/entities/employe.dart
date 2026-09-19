@@ -25,6 +25,9 @@ class Employe {
   final String poste;
 
   /// Rémunération actuelle, en fraction du chiffre d'affaires.
+  ///
+  /// C'est son positionnement dans la grille. Ce qu'elle coûte en euros se
+  /// calcule à partir de là — voir `Regles.salaireDe`.
   double part;
 
   /// Rémunération à l'embauche ; les augmentations plafonnent à quatre fois.
@@ -66,7 +69,8 @@ class Employe {
 
   Employe copie() => Employe(
         prenom: prenom, nom: nom, caractereId: caractereId, poste: poste,
-        part: part, partInitiale: partInitiale, age: age, ageRetraite: ageRetraite,
+        part: part, partInitiale: partInitiale,
+        age: age, ageRetraite: ageRetraite,
         graine: graine, moral: moral, confort: confort,
         ancienneteSecondes: ancienneteSecondes, binome: binome,
         origine: origine, indemnite: indemnite, estForme: estForme,

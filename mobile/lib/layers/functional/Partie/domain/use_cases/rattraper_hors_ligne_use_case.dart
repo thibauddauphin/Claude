@@ -56,8 +56,9 @@ class RattraperHorsLigneUseCase {
       /* Ce que les composants ne couvrent pas, l'équipe le bricole : tant
          qu'il y a quelqu'un à l'atelier, il ne reste jamais à l'arrêt. */
       if (voulu - montees > 0 && e.equipe.isNotEmpty) {
-        AvancerPartieUseCase.encaisser(
-            e, voulu - montees, Regles.partBricolage);
+        final bricolees = min(voulu - montees,
+            Regles.cadence(e) * Regles.capaciteBricolage * pas);
+        AvancerPartieUseCase.encaisser(e, bricolees, Regles.partBricolage);
       }
       avancer.avancerRivaux(e, pas);
     }

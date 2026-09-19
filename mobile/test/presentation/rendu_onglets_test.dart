@@ -1,54 +1,20 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:silicium_et_cie/layers/functional/Partie/domain/catalogue/stations.dart';
-import 'package:silicium_et_cie/layers/functional/Partie/domain/catalogue/technologies.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/domain/entities/etat_partie.dart';
-import 'package:silicium_et_cie/layers/functional/Partie/domain/use_cases/avancer_partie_use_case.dart';
-import 'package:silicium_et_cie/layers/functional/Partie/domain/use_cases/gerer_atelier_use_case.dart';
-import 'package:silicium_et_cie/layers/functional/Partie/domain/use_cases/gerer_equipe_use_case.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/presentation/views/atelier_view.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/presentation/views/equipe_view.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/presentation/views/marche_view.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/presentation/views/production_view.dart';
 import 'package:silicium_et_cie/layers/functional/Partie/presentation/views/recherche_view.dart';
 
+import '../../tool/joueur_simule.dart';
 import 'aides/hote_partie.dart';
-
-/// Une partie déjà entamée : ateliers montés, brevets déposés, équipe embauchée.
-///
-/// Les listes d'achat ne se peignent que si elles ont quelque chose à montrer ;
-/// un état neuf laisserait la moitié des écrans vides et le garde-fou muet.
-EtatPartie _partieEntamee() {
-  final hasard = Random(5);
-  final etat = EtatPartie.neuve();
-  final avancer = AvancerPartieUseCase(hasard: hasard);
-  const atelier = GererAtelierUseCase();
-  final equipe = GererEquipeUseCase(hasard: hasard);
-
-  for (var t = 0.0; t < 4 * 3600; t += 2) {
-    avancer(etat, 2);
-    atelier.acheterComposants(etat);
-    atelier.assembler(etat);
-    for (var i = stations.length - 1; i >= 0; i--) {
-      if (atelier.acheterStation(etat, i)) break;
-    }
-    for (var i = 0; i < technologies.length; i++) {
-      if (!etat.possede(technologies[i].id)) {
-        atelier.acheterTechnologie(etat, i);
-      }
-    }
-    equipe.embaucher(etat);
-  }
-  return etat;
-}
 
 void main() {
   late EtatPartie etat;
 
   setUpAll(() {
-    etat = _partieEntamee();
+    etat = simuler(graine: 5, heuresMax: 4).etat;
     /* Sans quoi le garde-fou serait creux : des écrans vides se peignent
        toujours. On exige que la partie simulée ait vraiment de quoi montrer. */
     expect(etat.exemplaires.where((n) => n > 0).length, greaterThan(2),

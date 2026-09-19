@@ -70,12 +70,21 @@ class AvancerPartieUseCase {
       if (montees > 0) recette = encaisser(e, montees);
       /* Tant qu'il reste quelqu'un à l'atelier, il ne s'arrête pas : ce que
          les composants ne couvrent pas part en bricolage. */
-      final bricolees = e.equipe.isEmpty ? 0.0 : voulu - montees;
+      final bricolees = e.equipe.isEmpty
+          ? 0.0
+          : min(voulu - montees, cadence * Regles.capaciteBricolage * dt);
       if (bricolees > 0) {
         recette += encaisser(e, bricolees, Regles.partBricolage);
       }
       produites = montees + bricolees;
     }
+
+    final charges = Regles.chargesParSeconde(e) * dt;
+    e.tresorerie -= charges;
+    e.chargesExercice += charges;
+    e.resultatExercice += recette - charges;
+    _cloturerExercice(e);
+    _tenirLaBanque(e, dt);
 
     final estBloquee = cadence > 0 && e.composants < besoin;
     final vie = _majEquipe(e, dt, estBloquee);
@@ -93,13 +102,17 @@ class AvancerPartieUseCase {
     );
   }
 
-  /// Encaisse la vente, paie l'équipe et crédite recherche et conquête.
+  /// Encaisse la vente et crédite recherche et conquête.
+  ///
   /// [part] vaut 1 pour une unité assemblée normalement, [Regles.partBricolage]
   /// pour une unité montée sans composants : moins rentable, mais l'atelier
   /// n'est jamais à l'arrêt faute de stock.
   static double encaisser(EtatPartie e, double unites, [double part = 1]) {
     final brut = unites * Regles.prixUnite(e) * part;
-    final net = brut * (1 - Regles.masseSalariale(e));
+    /* La recette entre entière. Les salaires et l'entretien sortent de la
+       caisse à part, à chaque seconde, qu'on ait vendu ou non : c'est toute
+       la différence entre une commission et une charge. */
+    final net = brut;
     e.tresorerie += net;
     e.chiffreAffaires += brut;
     e.chiffreAffairesCumule += brut;
@@ -110,6 +123,83 @@ class AvancerPartieUseCase {
     e.puissance += unites * pow(1 + e.gamme, 1.5) * Regles.conquete(e);
     e.pointsRecherche += unites * gammes[e.gamme].pointsRecherche * Regles.multRecherche(e);
     return net;
+  }
+
+  /// Le découvert coûte, et finit par se payer en machines et en gens.
+  ///
+  /// Une faillite qui efface tout après vingt heures de partie serait
+  /// gratuite : ici la banque coupe le robinet, on solde ce qu'il faut pour
+  /// rentrer dans les clous, et on repart amputé. La trace reste au journal.
+  void _tenirLaBanque(EtatPartie e, double dt) {
+    if (e.tresorerie >= 0) return;
+    e.tresorerie += e.tresorerie * Regles.tauxAgios * dt;
+    if (e.tresorerie > -Regles.decouvertTolere(e)) return;
+
+    /* Une coupe à la fois, pas un plan social en un instant : le joueur doit
+       voir venir et pouvoir redresser. On se sépare d'abord du salaire le plus
+       lourd, puis de la machine la plus chère à entretenir. */
+    if (e.equipe.isNotEmpty) {
+      var pire = 0;
+      for (var i = 1; i < e.equipe.length; i++) {
+        if (e.equipe[i].part > e.equipe[pire].part) pire = i;
+      }
+      final parti = e.equipe.removeAt(pire);
+      _delier(e, parti);
+      journaliser(e,
+          'Trésorerie au plus bas : ${parti.nomComplet} est '
+          "licencié${parti.accordeAuFeminin ? 'e' : ''}.");
+      /* Voir partir un collègue pour raison économique marque ceux qui
+         restent. */
+      for (final membre in e.equipe) {
+        membre.moral = max(0, membre.moral - 18);
+      }
+    }
+    if (e.equipe.isEmpty) {
+      var pire = -1;
+      for (var i = stations.length - 1; i >= 0; i--) {
+        if (e.exemplaires[i] > 0) {
+          pire = i;
+          break;
+        }
+      }
+      if (pire >= 0) {
+        e.exemplaires[pire]--;
+        e.tresorerie += stations[pire].coutBase * .4;
+        journaliser(e, 'Vente forcée : ${stations[pire].nom.toLowerCase()}.');
+      }
+    }
+    /* Le dépôt de bilan est le dernier recours, pas le premier : tant qu'il
+       reste quelqu'un ou une machine, on solde et on continue. */
+    if (e.equipe.isNotEmpty || e.exemplaires.any((n) => n > 0)) return;
+
+    /* Plus rien à vendre et toujours dans le rouge : c'est le dépôt de bilan.
+       La dette est effacée avec ce qui restait de la société, et on rouvre un
+       atelier. Ce qu'on a bâti au-dessus — actions, parts, jalons — survit :
+       une partie de vingt heures ne doit pas s'effacer d'un coup. */
+    if (e.tresorerie < -Regles.decouvertTolere(e)) {
+      e.tresorerie = 30;
+      e.composants = 12;
+      e.resultatExercice = 0;
+      e.chargesExercice = 0;
+      journaliser(e,
+          'Dépôt de bilan. La société est liquidée ; vous rouvrez un atelier.');
+    }
+  }
+
+  /// Arrête les comptes de l'année et prélève l'impôt sur les bénéfices.
+  ///
+  /// Garder du cash dormant coûte ; réinvestir avant la clôture ne coûte rien.
+  /// C'est l'arbitrage que fait tout dirigeant en fin d'exercice.
+  void _cloturerExercice(EtatPartie e) {
+    if (e.secondesJouees < e.prochainExercice) return;
+    e.prochainExercice += Regles.secondesParAnnee;
+    final resultat = e.resultatExercice;
+    final impot = resultat > 0 ? resultat * Regles.tauxImpot : 0.0;
+    e.tresorerie -= impot;
+    e.dernierImpot = impot;
+    e.dernierResultat = resultat;
+    e.resultatExercice = 0;
+    e.chargesExercice = 0;
   }
 
   /// Les rivaux visent une fraction de VOTRE puissance, avec un plancher qui

@@ -1,6 +1,7 @@
 import '../../domain/catalogue/concurrents.dart';
 import '../../domain/catalogue/stations.dart';
 import '../../domain/entities/employe.dart';
+import '../../domain/regles.dart';
 import '../../domain/entities/entree_journal.dart';
 import '../../domain/entities/etat_partie.dart';
 
@@ -36,6 +37,11 @@ class EtatPartieDto {
         'conglomerats': e.conglomerats,
         'retraites': e.retraites,
         'secondesJouees': e.secondesJouees,
+        'resultatExercice': e.resultatExercice,
+        'chargesExercice': e.chargesExercice,
+        'prochainExercice': e.prochainExercice,
+        'dernierImpot': e.dernierImpot,
+        'dernierResultat': e.dernierResultat,
         'equipe': e.equipe.map(_employeVersJson).toList(),
         'candidat': e.candidat == null ? null : _employeVersJson(e.candidat!),
         'journal': e.journal
@@ -57,6 +63,16 @@ class EtatPartieDto {
       retraites: _entier(j['retraites']),
       secondesJouees: _reel(j['secondesJouees']),
     );
+
+    etat.resultatExercice = _reel(j['resultatExercice']);
+    etat.chargesExercice = _reel(j['chargesExercice']);
+    /* Une sauvegarde d'avant les exercices comptables n'a pas d'échéance : on
+       en ouvre un à partir de maintenant plutôt que d'en réclamer un arriéré
+       de quinze ères d'un coup. */
+    etat.prochainExercice = _reel(j['prochainExercice'],
+        defaut: _reel(j['secondesJouees']) + Regles.secondesParAnnee);
+    etat.dernierImpot = _reel(j['dernierImpot']);
+    etat.dernierResultat = _reel(j['dernierResultat']);
 
     etat.tresorerie = _reel(j['tresorerie'], defaut: 30);
     etat.composants = _reel(j['composants'], defaut: 12);

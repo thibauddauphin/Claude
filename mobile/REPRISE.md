@@ -37,6 +37,21 @@ référence : toute règle qui diverge est un bogue du portage.
   qui manquait quand un liseré non uniforme arrondi faisait lever la peinture
   de toutes les listes d'achat sans qu'aucun test ne s'en aperçoive.
 
+## Attention : Flutter est désormais la référence
+
+L'économie (charges fixes, salaires en euros, impôt, découvert) n'existe que
+côté Dart. `../jeu/` garde l'ancienne économie et **ne mesure plus le même
+jeu** : `outils/calibrage.js` et `outils/equilibrage.js` sont donc périmés
+pour l'équilibrage. Le rythme se mesure maintenant avec :
+
+```bash
+dart run tool/rythme.dart 40
+```
+
+Le joueur simulé de `tool/joueur_simule.dart` est partagé avec les tests de
+fidélité : une seule copie, sinon les deux finissent par mesurer deux jeux
+différents. `donnees.js` reste la source des tables de catalogue.
+
 ## Reste à faire
 
 1. **Notifications** (`POST_NOTIFICATIONS`, Android 13+) — décision de produit
