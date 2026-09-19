@@ -1,11 +1,11 @@
 {
-    "name": "silicium_et_cie",
-    "short_name": "silicium_et_cie",
+    "name": "Silicium & Cie",
+    "short_name": "Silicium & Cie",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Tycoon de l'informatique, de 1975 à 2040.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -30,6 +30,7 @@ class ThemeAtelier {
       ),
       extensions: [p],
       textTheme: base.textTheme.apply(
+        fontFamily: familleTexte,
         bodyColor: p.encre,
         displayColor: p.encre,
       ),

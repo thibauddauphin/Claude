@@ -23,16 +23,26 @@ référence : toute règle qui diverge est un bogue du portage.
 - **Interface téléphone** : bandeau d'instruments, scène tactile, cinq onglets.
 - **Cycle de vie Android** : sauvegarde en pause, rattrapage hors ligne au retour.
 
+## Fait (fin du portage)
+
+- **Icône et nom de l'application**.
+- **Annonce d'ère** plein écran, **bandeau d'événement**, messages de départ
+  et de retraite.
+- **Panneau Conglomérat** : le second niveau de prestige a son écran, avec
+  ses huit améliorations et un bouton à double appui.
+- **Polices IBM Plex embarquées** : le jeu s'affiche pareil hors ligne, et les
+  exposants de la notation scientifique ne sont plus des carrés vides.
+- **Tests d'affichage** (`test/presentation/rendu_onglets_test.dart`) : les
+  cinq onglets sont peints sur une partie simulée de quatre heures. C'est ce
+  qui manquait quand un liseré non uniforme arrondi faisait lever la peinture
+  de toutes les listes d'achat sans qu'aucun test ne s'en aperçoive.
+
 ## Reste à faire
 
-1. **Icône et nom de l'application**, écran de démarrage.
-2. **Annonce d'ère** plein écran et bandeau d'événement, présents dans la
-   version web et pas encore portés.
-3. **Onglet Conglomérat** : le second niveau de prestige n'a pas d'écran.
-4. **Notifications** (`POST_NOTIFICATIONS`, Android 13+) — décision de produit
+1. **Notifications** (`POST_NOTIFICATIONS`, Android 13+) — décision de produit
    en attente : rappeler le joueur quand la chaîne s'arrête ou que les douze
-   heures hors ligne sont pleines.
-5. **Signature de l'APK** pour une distribution hors Play Store.
+   heures hors ligne sont pleines. Aucune autre permission n'est nécessaire.
+2. **Signature de l'APK** pour une distribution hors Play Store.
 
 ## Régénérer les tables du catalogue
 

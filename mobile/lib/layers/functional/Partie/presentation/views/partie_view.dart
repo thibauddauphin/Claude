@@ -9,6 +9,8 @@ import '../../domain/regles.dart';
 import '../cubit/partie_cubit.dart';
 import '../cubit/partie_state.dart';
 import '../widgets/afficheur.dart';
+import '../widgets/annonce_ere.dart';
+import '../widgets/banniere_evenement.dart';
 import '../widgets/scene_atelier.dart';
 import 'atelier_view.dart';
 import 'equipe_view.dart';
@@ -61,10 +63,34 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final p = context.palette;
     return BlocConsumer<PartieCubit, PartieState>(
-      listenWhen: (a, b) => a.bilanHorsLigne != b.bilanHorsLigne,
+      listenWhen: (a, b) =>
+          a.bilanHorsLigne != b.bilanHorsLigne ||
+          a.dernierDepart != b.dernierDepart ||
+          a.derniereRetraite != b.derniereRetraite,
       listener: (context, etat) {
         final bilan = etat.bilanHorsLigne;
         if (bilan != null) _montrerRetour(context, bilan);
+
+        final retraite = etat.derniereRetraite;
+        if (retraite != null) {
+          _annoncer(
+            context,
+            '${retraite.partant.nomComplet} part à la retraite. '
+            '${retraite.releve.prenom} ${retraite.releve.nom} prend la suite.',
+            favorable: true,
+          );
+          return;
+        }
+        final departs = etat.dernierDepart;
+        if (departs != null && departs.isNotEmpty) {
+          _annoncer(
+            context,
+            departs.length == 1
+                ? '${departs.first.nomComplet} quitte l’atelier.'
+                : '${departs.map((e) => e.prenom).join(', ')} quittent l’atelier.',
+            favorable: false,
+          );
+        }
       },
       builder: (context, etat) {
         final partie = etat.etat;
@@ -86,10 +112,24 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
             child: Column(
               children: [
                 _BandeauInstruments(etat: partie, ere: '${ere.annee} · ${ere.nom}'),
-                SceneAtelier(
-                  etat: partie,
-                  battement: cubit.battement,
-                  onAssembler: cubit.assembler,
+                Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    SceneAtelier(
+                      etat: partie,
+                      battement: cubit.battement,
+                      onAssembler: cubit.assembler,
+                    ),
+                    BanniereEvenement(evenement: partie.evenement),
+                    if (etat.ereAnnoncee != null)
+                      Positioned.fill(
+                        child: AnnonceEre(
+                          key: ValueKey(etat.ereAnnoncee),
+                          ere: etat.ereAnnoncee!,
+                          onTerminee: cubit.annonceEreTerminee,
+                        ),
+                      ),
+                  ],
                 ),
                 _BandeauCadence(etat: partie),
                 Expanded(
@@ -125,6 +165,21 @@ class _PartieViewState extends State<PartieView> with WidgetsBindingObserver {
         );
       },
     );
+  }
+
+  /// Un avis bref en bas d'écran : ni dialogue à refermer, ni ligne noyée
+  /// dans le journal.
+  void _annoncer(BuildContext context, String texte, {required bool favorable}) {
+    final p = context.palette;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(texte, style: ThemeAtelier.corps(p, couleur: p.surAccent)),
+        backgroundColor: favorable ? p.bon : p.mauvais,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+      ));
   }
 
   void _montrerRetour(BuildContext context, dynamic bilan) {
@@ -280,8 +335,11 @@ class _BandeauCadence extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text('Touchez l’atelier',
-              style: ThemeAtelier.etiquette(p, couleur: p.encrePale, taille: 9)),
+          // L'indication ne sert qu'au tout début ; elle se retire une fois
+          // le geste acquis, et laisse la place aux chiffres.
+          if (etat.unitesVendues < 20)
+            Text('Touchez l’atelier',
+                style: ThemeAtelier.etiquette(p, couleur: p.encrePale, taille: 9)),
         ],
       ),
     );

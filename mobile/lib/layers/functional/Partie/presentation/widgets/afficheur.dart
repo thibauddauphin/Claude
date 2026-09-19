@@ -148,7 +148,9 @@ class LigneAchat extends StatelessWidget {
                 right: BorderSide(color: p.trait),
                 bottom: BorderSide(color: p.trait),
               ),
-              borderRadius: BorderRadius.circular(2),
+              /* Pas d'arrondi ici : le liseré gauche est volontairement d'une
+                 autre couleur et plus épais, et Flutter refuse de peindre un
+                 borderRadius sur une bordure non uniforme. */
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,

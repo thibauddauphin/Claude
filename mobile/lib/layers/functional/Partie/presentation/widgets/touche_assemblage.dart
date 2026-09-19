@@ -67,7 +67,7 @@ class _ToucheAssemblageState extends State<ToucheAssemblage> {
               Text('ASSEMBLER',
                   style: ThemeAtelier.titre(p, taille: 20).copyWith(letterSpacing: 1.6)),
               const SizedBox(height: 3),
-              Text('+${widget.gain} · ${widget.composants} composants',
+              Text('+${widget.gain} · ${widget.composants}',
                   style: ThemeAtelier.chiffres(p,
                       couleur: p.encreDouce, taille: 11, graisse: FontWeight.w400)),
             ],

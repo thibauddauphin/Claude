@@ -6,3 +6,6 @@ build/
 local.properties
 key.properties
 *.jks
+
+# Généré par « flutter pub get », propre à chaque machine.
+.flutter-plugins-dependencies

@@ -8,6 +8,8 @@ import '../../domain/entities/etat_partie.dart';
 import '../../domain/regles.dart';
 import '../cubit/partie_cubit.dart';
 import '../widgets/afficheur.dart';
+import '../widgets/bouton_confirme.dart';
+import '../widgets/panneau_conglomerat.dart';
 import '../widgets/touche_assemblage.dart';
 
 /// L'onglet du geste : la gamme, la touche, l'approvisionnement, les prix.
@@ -131,11 +133,16 @@ class AtelierView extends StatelessWidget {
         ),
         if (actions > 0) ...[
           const SizedBox(height: 12),
-          _BoutonPrestige(
+          BoutonConfirme(
             titre: 'Entrer en bourse',
+            titreArme: 'Confirmer : tout repart de zéro',
             detail: '$actions actions · +${actions * 8} % production et prix, à vie',
             onConfirme: cubit.entrerEnBourse,
           ),
+        ],
+        if (PanneauConglomerat.estVisible(etat)) ...[
+          const SizedBox(height: 12),
+          PanneauConglomerat(etat: etat),
         ],
       ],
     );
@@ -151,61 +158,5 @@ class AtelierView extends StatelessWidget {
       return 'Recette réduite, parts de marché gagnées plus vite (×$f).';
     }
     return 'Prix du marché : recette et conquête à l’équilibre (×$f).';
-  }
-}
-
-/// Bouton de remise à zéro : il faut confirmer, on ne solde pas sa société
-/// d'une tape involontaire.
-class _BoutonPrestige extends StatefulWidget {
-  const _BoutonPrestige({
-    required this.titre,
-    required this.detail,
-    required this.onConfirme,
-  });
-
-  final String titre;
-  final String detail;
-  final VoidCallback onConfirme;
-
-  @override
-  State<_BoutonPrestige> createState() => _BoutonPrestigeState();
-}
-
-class _BoutonPrestigeState extends State<_BoutonPrestige> {
-  bool _arme = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        backgroundColor: p.accent,
-        foregroundColor: p.surAccent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-      ),
-      onPressed: () {
-        if (!_arme) {
-          setState(() => _arme = true);
-          Future.delayed(const Duration(seconds: 4), () {
-            if (mounted) setState(() => _arme = false);
-          });
-          return;
-        }
-        setState(() => _arme = false);
-        widget.onConfirme();
-      },
-      child: Column(
-        children: [
-          Text(_arme ? 'Confirmer : tout repart de zéro' : widget.titre,
-              style: ThemeAtelier.corps(p, couleur: p.surAccent)
-                  .copyWith(fontWeight: FontWeight.w600)),
-          Text(widget.detail,
-              style: ThemeAtelier.chiffres(p,
-                  couleur: p.surAccent, taille: 11, graisse: FontWeight.w400),
-              textAlign: TextAlign.center),
-        ],
-      ),
-    );
   }
 }
