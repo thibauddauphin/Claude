@@ -39,6 +39,10 @@ class MarcheView extends StatelessWidget {
               SizedBox(
                 height: 20,
                 child: Row(
+                  /* Sans « stretch », la Row centre ses enfants et leur laisse
+                     une contrainte verticale lâche : un ColoredBox sans enfant
+                     s'écrase alors à zéro et la barre devient invisible. */
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     for (final (i, part) in parts.indexed) ...[
                       if (i > 0) const SizedBox(width: 2),

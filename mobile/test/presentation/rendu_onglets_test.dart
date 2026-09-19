@@ -77,6 +77,21 @@ void main() {
     testWidgets('marché', (t) => peindre(t, MarcheView(etat: etat)));
   });
 
+  testWidgets('la barre de parts de marché occupe vraiment sa hauteur',
+      (tester) async {
+    await tester.pumpWidget(hotePartie(MarcheView(etat: EtatPartie.neuve())));
+    await tester.pump();
+    /* Peindre ne suffit pas : un ColoredBox sans enfant se réduit à une
+       hauteur nulle sans rien signaler, et la barre disparaît en silence. */
+    final segments = find.byType(ColoredBox).evaluate()
+        .map((e) => tester.getSize(find.byWidget(e.widget)))
+        .where((t) => t.width > 20 && t.width < 700);
+    expect(segments, isNotEmpty, reason: 'aucun segment de barre trouvé');
+    for (final t in segments) {
+      expect(t.height, greaterThan(10), reason: 'segment aplati : $t');
+    }
+  });
+
   testWidgets('l’atelier montre le second niveau de prestige une fois mérité',
       (tester) async {
     final riche = EtatPartie.neuve()..actions = 600;
