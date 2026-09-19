@@ -49,11 +49,16 @@ class Panneau extends StatelessWidget {
     required this.titre,
     required this.enfant,
     this.indication,
+    this.action,
     super.key,
   });
 
   final String titre;
   final String? indication;
+
+  /// Un contrôle logé dans l'en-tête, au bout du titre.
+  final Widget? action;
+
   final Widget enfant;
 
   @override
@@ -83,6 +88,7 @@ class Panneau extends StatelessWidget {
                 if (indication != null)
                   Text(indication!,
                       style: ThemeAtelier.etiquette(p, couleur: p.encrePale)),
+                ?action,
               ],
             ),
           ),

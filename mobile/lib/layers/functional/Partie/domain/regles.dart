@@ -29,6 +29,25 @@ class Regles {
   /// Impôt sur les bénéfices. Ne frappe que le résultat positif.
   static const double tauxImpot = .25;
 
+  /// Un emprunt se rembourse sur cinq années de jeu, à 8 % l'an.
+  static const double dureeEmprunt = secondesParAnnee * 5;
+  static const double tauxInteretAnnuel = .08;
+
+  /// Ce que la banque accepte de vous prêter au total.
+  ///
+  /// Elle regarde ce que la société encaisse, et consent un minimum même à
+  /// celui qui démarre : c'est ainsi qu'on ouvre un atelier sans capital.
+  static double plafondEmprunt(EtatPartie e) =>
+      max(recetteBrute(e) * secondesParAnnee * 2, prixUnite(e) * 3000);
+
+  /// Ce qu'il reste possible d'emprunter aujourd'hui.
+  static double empruntDisponible(EtatPartie e) =>
+      max(0, plafondEmprunt(e) - e.emprunt);
+
+  /// L'échéance, en euros par seconde : amortissement du capital et intérêts.
+  static double echeanceEmprunt(EtatPartie e) =>
+      e.emprunt * (1 / dureeEmprunt + tauxInteretAnnuel / secondesParAnnee);
+
   /// Agios sur le découvert, par seconde. La banque ne prête pas gratuitement.
   static const double tauxAgios = .0004;
 
@@ -131,9 +150,20 @@ class Regles {
     return m;
   }
 
+  /// Le prix que pratique le marché pour cette génération de produits.
+  ///
+  /// C'est la référence à laquelle le client vous compare : votre politique de
+  /// prix n'est rien d'autre que l'écart que vous creusez avec elle.
+  static double prixMarche(EtatPartie e) => prixUnite(e) / e.marge;
+
   /// Une marge élevée rapporte davantage mais freine la conquête.
+  ///
+  /// La courbe est volontairement raide : vendre 60 % au-dessus du marché
+  /// divise la conquête par huit, ce qui laisse les concurrents reprendre le
+  /// terrain. Une pente douce rendait le prix fort toujours gagnant — on
+  /// encaissait 60 % de plus en ne perdant presque rien.
   static double conquete(EtatPartie e) {
-    var c = (2 - e.marge).clamp(.4, 1.35).toDouble();
+    var c = pow(max(2 - e.marge, .05), 2.2).clamp(.05, 1.6).toDouble();
     for (final t in technologies) {
       if (t.conquete != null && e.possede(t.id)) c *= t.conquete!;
     }
@@ -192,6 +222,25 @@ class Regles {
   static double forceClic(EtatPartie e) =>
       (e.possede('fer') ? 4 : 1) * multActions(e) * multParts(e);
 
+  /// Ce que coûte l'achat de [quantite] exemplaires d'un coup.
+  ///
+  /// Chaque exemplaire se paie 19 % de plus que le précédent, d'où la somme
+  /// géométrique : acheter dix machines n'est pas dix fois le prix d'une.
+  static double coutStations(EtatPartie e, int i, int quantite) {
+    if (quantite <= 0) return 0;
+    final unitaire = coutStation(e, i);
+    return (unitaire * (pow(1.19, quantite) - 1) / .19).ceilToDouble();
+  }
+
+  /// Combien d'exemplaires la trésorerie permet d'acheter d'un coup.
+  static int quantiteAbordable(EtatPartie e, int i, {int plafond = 1000}) {
+    var n = 0;
+    while (n < plafond && coutStations(e, i, n + 1) <= e.tresorerie) {
+      n++;
+    }
+    return n;
+  }
+
   static double coutStation(EtatPartie e, int i) {
     var c = stations[i].coutBase * pow(1.19, e.exemplaires[i]);
     if (e.possede('restruct')) c *= .85;
@@ -207,12 +256,30 @@ class Regles {
   static double lotComposants(EtatPartie e) =>
       max(25, (besoinComposants(e) * max(cadence(e), 1) * 30).ceilToDouble());
 
-  /// La paie se prélève sur la recette, plafonnée à 60 %.
-  /// Ce que l'atelier encaisserait par seconde s'il tournait à plein.
+  /// Ce que le marché absorbe, en part de ce que l'atelier sait produire.
   ///
-  /// Sert de référence à tout ce qui se chiffre en euros : les salaires du
-  /// marché comme les charges. Elle ne dépend pas de vos ennuis du moment.
-  static double recetteBrute(EtatPartie e) => cadence(e) * prixUnite(e);
+  /// Au-dessus du prix du marché, les clients vont voir ailleurs : c'est le
+  /// vrai prix d'une marge élevée. Sans cela on vendait autant quoi qu'il
+  /// arrive, et vendre cher n'avait aucun inconvénient. En dessous du marché
+  /// on écoule tout ce qu'on fabrique, jamais plus : on ne vend pas ce qu'on
+  /// n'a pas produit.
+  static double demande(EtatPartie e) =>
+      pow(max(2 - e.marge, .05), 1.5).clamp(.1, 1).toDouble();
+
+  /// Ce que l'atelier écoule réellement par seconde, demande comprise.
+  static double cadenceVendue(EtatPartie e) => cadence(e) * demande(e);
+
+  /// Ce que l'atelier encaisse par seconde à plein régime.
+  static double recetteBrute(EtatPartie e) => cadenceVendue(e) * prixUnite(e);
+
+  /// La taille de la maison, valorisée au prix du marché.
+  ///
+  /// Sert d'assiette aux salaires : ce qu'on doit à ses gens tient à
+  /// l'ampleur de l'atelier, pas à la politique tarifaire du patron. Les
+  /// indexer sur la recette ferait baisser la paie quand on se trompe de
+  /// prix, ce qui amortirait justement l'erreur qu'on veut faire sentir.
+  static double assietteSalaire(EtatPartie e) =>
+      max(cadence(e) * prixMarche(e), prixMarche(e));
 
   /// Ce qu'une personne coûte sur le marché du travail, en euros par seconde.
   ///
@@ -227,11 +294,6 @@ class Regles {
   /// les ères du milieu, où une masse salariale de grande entreprise tombe sur
   /// une société qui n'en est pas encore une.
   static double coefficientSalaire(EtatPartie e) => 1.2 + .2 * ereCourante(e);
-
-  /// Le plancher évite un tarif nul quand l'atelier ne tourne pas encore :
-  /// personne ne travaille gratuitement en attendant la première machine.
-  static double assietteSalaire(EtatPartie e) =>
-      max(recetteBrute(e), prixUnite(e));
 
   /// Ce que coûte cette personne, en euros par seconde.
   ///
@@ -276,7 +338,7 @@ class Regles {
 
   /// Tout ce qui sort chaque seconde, production ou pas.
   static double chargesParSeconde(EtatPartie e) =>
-      masseSalariale(e) + entretienParc(e);
+      masseSalariale(e) + entretienParc(e) + echeanceEmprunt(e);
 
   /// Ce qui reste par seconde une fois les charges payées. Négatif, l'atelier
   /// perd de l'argent : c'est le chiffre que regarde un patron.

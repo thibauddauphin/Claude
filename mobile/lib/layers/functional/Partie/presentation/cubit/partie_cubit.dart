@@ -11,6 +11,7 @@ import '../../domain/gateways/sauvegarde_partie_gateway.dart';
 import '../../domain/regles.dart';
 import '../../domain/use_cases/avancer_partie_use_case.dart';
 import '../../domain/use_cases/gerer_atelier_use_case.dart';
+import '../../domain/use_cases/gerer_banque_use_case.dart';
 import '../../domain/use_cases/gerer_equipe_use_case.dart';
 import '../../domain/use_cases/prestige_use_case.dart';
 import '../../domain/use_cases/rattraper_hors_ligne_use_case.dart';
@@ -150,6 +151,26 @@ class PartieCubit extends Cubit<PartieState> {
     final effet = _atelier.acheterTechnologie(partie, i);
     if (effet == EffetRecherche.aucun) return;
     _emettre(ere: effet == EffetRecherche.nouvelleEre ? Regles.ereCourante(partie) : null);
+  }
+
+  /// Combien un achat prend d'un coup : 1, 10, 100, ou tout ce qu'on peut.
+  void changerLotAchat(int lot) {
+    final partie = _partie;
+    if (partie == null) return;
+    partie.lotAchat = lot;
+    _emettre();
+  }
+
+  void emprunter(double montant) {
+    final partie = _partie;
+    if (partie == null) return;
+    if (const GererBanqueUseCase().emprunter(partie, montant) > 0) _emettre();
+  }
+
+  void rembourserEmprunt(double montant) {
+    final partie = _partie;
+    if (partie == null) return;
+    if (const GererBanqueUseCase().rembourser(partie, montant) > 0) _emettre();
   }
 
   void changerMarge(double marge) {

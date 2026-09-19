@@ -9,6 +9,7 @@ import '../../domain/entities/etat_partie.dart';
 import '../../domain/regles.dart';
 import '../widgets/afficheur.dart';
 import '../widgets/compte_resultat.dart';
+import '../widgets/panneau_banque.dart';
 import '../widgets/courbe_revenu.dart';
 
 /// L'onglet du dehors : parts de marché, revenu, journal de bord, jalons.
@@ -33,6 +34,8 @@ class MarcheView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
       children: [
         CompteResultat(etat: etat),
+        const SizedBox(height: 12),
+        PanneauBanque(etat: etat),
         const SizedBox(height: 12),
         Panneau(
           titre: 'Parts de marché',

@@ -45,6 +45,8 @@ class EtatPartie {
     this.prochainExercice = 360, // une année de jeu ; voir Regles.secondesParAnnee
     this.dernierImpot = 0,
     this.impotReporte = 0,
+    this.emprunt = 0,
+    this.lotAchat = 1,
     this.dernierResultat = 0,
   });
 
@@ -115,6 +117,13 @@ class EtatPartie {
 
   /// Ce que la caisse n'a pas permis de payer et qui reste dû.
   double impotReporte;
+
+  /// Capital restant dû à la banque.
+  double emprunt;
+
+  /// Combien d'exemplaires ou de lots un achat prend d'un coup.
+  /// Zéro signifie « autant que la trésorerie permet ».
+  int lotAchat;
 
   /// Nombre d'exemplaires possédés de chaque moyen de production.
   final List<int> exemplaires;

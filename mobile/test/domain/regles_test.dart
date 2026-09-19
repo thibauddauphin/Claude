@@ -24,14 +24,16 @@ void main() {
   group('la politique de prix', () {
     test('casser les prix accélère la conquête et réduit la recette', () {
       final etat = EtatPartie.neuve()..marge = .7;
-      expect(Regles.conquete(etat), closeTo(1.3, .001));
+      expect(Regles.conquete(etat), closeTo(1.6, .001));
       expect(Regles.multPrix(etat), closeTo(.7, .001));
     });
 
-    test('vendre cher fait l’inverse', () {
+    test('vendre cher fait l’inverse, et la pente est raide', () {
       final etat = EtatPartie.neuve()..marge = 1.6;
-      expect(Regles.conquete(etat), closeTo(.4, .001));
       expect(Regles.multPrix(etat), closeTo(1.6, .001));
+      /* Encaisser 60 % de plus doit coûter bien plus que 60 % de conquête,
+         sinon le prix fort est toujours le bon choix. */
+      expect(Regles.conquete(etat), lessThan(.2));
     });
   });
 

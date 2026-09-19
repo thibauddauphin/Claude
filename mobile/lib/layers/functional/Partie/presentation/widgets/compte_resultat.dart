@@ -26,6 +26,7 @@ class CompteResultat extends StatelessWidget {
         Regles.prixComposant(etat);
     final salaires = Regles.masseSalariale(etat);
     final entretien = Regles.entretienParc(etat);
+    final echeance = Regles.echeanceEmprunt(etat);
     final resultat = Regles.resultatParSeconde(etat);
     final decouvert = etat.tresorerie < 0;
 
@@ -40,6 +41,7 @@ class CompteResultat extends StatelessWidget {
             _Ligne(intitule: 'Composants', montant: -composants),
           if (salaires > 0) _Ligne(intitule: 'Salaires', montant: -salaires),
           if (entretien > 0) _Ligne(intitule: 'Entretien du parc', montant: -entretien),
+          if (echeance > 0) _Ligne(intitule: 'Échéance bancaire', montant: -echeance),
           Divider(color: p.trait, height: 18),
           _Ligne(
             intitule: 'Résultat',

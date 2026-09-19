@@ -41,7 +41,10 @@ class GererAtelierUseCase {
   bool acheterComposants(EtatPartie e) {
     final prix = Regles.prixComposant(e);
     if (prix <= 0) return false;
-    final souhaite = Regles.lotComposants(e);
+    /* Le joueur choisit combien de lots partent d'un coup ; zéro veut dire
+       « autant que la caisse permet ». */
+    final lots = e.lotAchat > 0 ? e.lotAchat : 1000000;
+    final souhaite = Regles.lotComposants(e) * lots;
     final abordable = (e.tresorerie / prix).floorToDouble();
     final quantite = min(souhaite, abordable);
     if (quantite < 1) return false;
@@ -50,12 +53,20 @@ class GererAtelierUseCase {
     return true;
   }
 
+  /// Achète des exemplaires d'un moyen de production.
+  ///
+  /// La quantité suit le lot choisi par le joueur, ramenée à ce que la
+  /// trésorerie permet : demander dix machines et n'en payer que six vaut
+  /// mieux que ne rien acheter du tout.
   bool acheterStation(EtatPartie e, int i) {
-    final cout = Regles.coutStation(e, i);
-    if (e.tresorerie < cout) return false;
+    final voulu = e.lotAchat > 0 ? e.lotAchat : Regles.quantiteAbordable(e, i);
+    final quantite = min(voulu, Regles.quantiteAbordable(e, i));
+    if (quantite < 1) return false;
+    final cout = Regles.coutStations(e, i, quantite);
     e.tresorerie -= cout;
-    e.exemplaires[i]++;
-    if (e.exemplaires[i] == 1) {
+    final avant = e.exemplaires[i];
+    e.exemplaires[i] += quantite;
+    if (avant == 0) {
       journaliser(e, 'Mise en service : ${stations[i].nom.toLowerCase()}.');
     }
     return true;

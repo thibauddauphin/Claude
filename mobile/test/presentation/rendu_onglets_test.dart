@@ -62,6 +62,13 @@ void main() {
       (tester) async {
     final riche = EtatPartie.neuve()..actions = 600;
     await tester.pumpWidget(hotePartie(AtelierView(etat: riche)));
+    /* L'onglet est une liste : ce qui dépasse de l'écran n'est pas construit,
+       il faut y faire défiler comme le ferait le joueur. */
+    await tester.dragUntilVisible(
+      find.text('Fonder le conglomérat'),
+      find.byType(AtelierView),
+      const Offset(0, -220),
+    );
     expect(find.text('Fonder le conglomérat'), findsOneWidget);
   });
 }

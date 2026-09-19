@@ -59,7 +59,7 @@ class AvancerPartieUseCase {
     _approvisionner(e, dt);
 
     final besoin = Regles.besoinComposants(e);
-    final cadence = Regles.cadence(e);
+    final cadence = Regles.cadenceVendue(e);
     var produites = 0.0;
     var recette = 0.0;
 
@@ -82,6 +82,12 @@ class AvancerPartieUseCase {
 
     final charges = Regles.chargesParSeconde(e) * dt;
     e.tresorerie -= charges;
+    /* L'échéance est comptée dans les charges ci-dessus ; il reste à en
+       déduire la part de capital, sinon la dette ne s'éteindrait jamais. */
+    if (e.emprunt > 0) {
+      e.emprunt = max(0, e.emprunt - e.emprunt / Regles.dureeEmprunt * dt);
+      if (e.emprunt < 1) e.emprunt = 0;
+    }
     e.chargesExercice += charges;
     e.resultatExercice += recette - charges;
     _cloturerExercice(e);

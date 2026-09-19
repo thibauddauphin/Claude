@@ -9,6 +9,7 @@ import '../../domain/regles.dart';
 import '../cubit/partie_cubit.dart';
 import '../widgets/afficheur.dart';
 import '../widgets/bouton_confirme.dart';
+import '../widgets/choix_lot.dart';
 import '../widgets/panneau_conglomerat.dart';
 import '../widgets/touche_assemblage.dart';
 
@@ -71,6 +72,7 @@ class AtelierView extends StatelessWidget {
         const SizedBox(height: 12),
         Panneau(
           titre: 'Approvisionnement',
+          action: ChoixLot(lot: etat.lotAchat),
           enfant: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -105,7 +107,7 @@ class AtelierView extends StatelessWidget {
         const SizedBox(height: 12),
         Panneau(
           titre: 'Politique de prix',
-          indication: '${(etat.marge * 100).round()} %',
+          indication: '${(etat.marge * 100).round()} % du marché',
           enfant: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -124,6 +126,22 @@ class AtelierView extends StatelessWidget {
                       style: ThemeAtelier.corps(p, couleur: p.encreDouce, taille: 11.5)),
                   Text('Vendre cher',
                       style: ThemeAtelier.corps(p, couleur: p.encreDouce, taille: 11.5)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 20,
+                runSpacing: 8,
+                children: [
+                  Chiffre(
+                      intitule: 'Prix du marché',
+                      valeur: Nombres.euros(Regles.prixMarche(etat))),
+                  Chiffre(
+                      intitule: 'Votre prix',
+                      valeur: Nombres.euros(prixUnite),
+                      couleur: etat.marge > 1.02
+                          ? p.mauvais
+                          : (etat.marge < .98 ? p.bon : null)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -151,12 +169,16 @@ class AtelierView extends StatelessWidget {
   String _effetMarge(EtatPartie etat) {
     final c = Regles.conquete(etat);
     final f = Nombres.format(c);
+    final ecart = ((etat.marge - 1) * 100).round().abs();
     if (etat.marge > 1.02) {
-      return 'Recette en hausse, conquête du marché ralentie (×$f).';
+      return '$ecart % au-dessus du marché : vous encaissez plus, mais vous '
+          'conquérez $f fois moins vite et vos concurrents reprennent du '
+          'terrain.';
     }
     if (etat.marge < .98) {
-      return 'Recette réduite, parts de marché gagnées plus vite (×$f).';
+      return '$ecart % sous le marché : recette réduite, parts gagnées '
+          '$f fois plus vite.';
     }
-    return 'Prix du marché : recette et conquête à l’équilibre (×$f).';
+    return 'Au prix du marché : recette et conquête à l’équilibre (×$f).';
   }
 }

@@ -9,6 +9,7 @@ import '../../domain/entities/etat_partie.dart';
 import '../../domain/regles.dart';
 import '../cubit/partie_cubit.dart';
 import '../widgets/afficheur.dart';
+import '../widgets/choix_lot.dart';
 
 /// Les douze moyens de production. Seuls les paliers proches sont montrés :
 /// afficher l'essaim d'usines noires en 1975 ne renseigne personne.
@@ -34,6 +35,7 @@ class ProductionView extends StatelessWidget {
       children: [
         Panneau(
           titre: 'Moyens de production',
+          action: ChoixLot(lot: etat.lotAchat),
           indication: '${Nombres.format(etat.totalExemplaires.toDouble())} en service',
           enfant: Column(
             children: [
