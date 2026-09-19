@@ -41,6 +41,7 @@ class EtatPartieDto {
         'chargesExercice': e.chargesExercice,
         'prochainExercice': e.prochainExercice,
         'dernierImpot': e.dernierImpot,
+        'impotReporte': e.impotReporte,
         'dernierResultat': e.dernierResultat,
         'equipe': e.equipe.map(_employeVersJson).toList(),
         'candidat': e.candidat == null ? null : _employeVersJson(e.candidat!),
@@ -72,6 +73,7 @@ class EtatPartieDto {
     etat.prochainExercice = _reel(j['prochainExercice'],
         defaut: _reel(j['secondesJouees']) + Regles.secondesParAnnee);
     etat.dernierImpot = _reel(j['dernierImpot']);
+    etat.impotReporte = _reel(j['impotReporte']);
     etat.dernierResultat = _reel(j['dernierResultat']);
 
     etat.tresorerie = _reel(j['tresorerie'], defaut: 30);

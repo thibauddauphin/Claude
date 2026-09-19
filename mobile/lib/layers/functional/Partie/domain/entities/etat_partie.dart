@@ -44,6 +44,7 @@ class EtatPartie {
     this.chargesExercice = 0,
     this.prochainExercice = 360, // une année de jeu ; voir Regles.secondesParAnnee
     this.dernierImpot = 0,
+    this.impotReporte = 0,
     this.dernierResultat = 0,
   });
 
@@ -111,6 +112,9 @@ class EtatPartie {
   /// Dernier impôt acquitté et dernier résultat arrêté, pour l'affichage.
   double dernierImpot;
   double dernierResultat;
+
+  /// Ce que la caisse n'a pas permis de payer et qui reste dû.
+  double impotReporte;
 
   /// Nombre d'exemplaires possédés de chaque moyen de production.
   final List<int> exemplaires;

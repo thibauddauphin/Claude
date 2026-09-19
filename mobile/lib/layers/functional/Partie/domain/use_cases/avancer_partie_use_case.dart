@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../../../technical/Format/nombres.dart';
 import '../catalogue/caracteres_index.dart';
 import '../catalogue/concurrents.dart';
 import '../catalogue/equipe.dart';
@@ -194,9 +195,18 @@ class AvancerPartieUseCase {
     if (e.secondesJouees < e.prochainExercice) return;
     e.prochainExercice += Regles.secondesParAnnee;
     final resultat = e.resultatExercice;
-    final impot = resultat > 0 ? resultat * Regles.tauxImpot : 0.0;
+    final du = (resultat > 0 ? resultat * Regles.tauxImpot : 0.0) + e.impotReporte;
+    /* On ne paie pas ce qu'on n'a pas. Le fisc prend ce que la caisse permet
+       et reporte le reste sur l'exercice suivant : un rappel étalé plutôt
+       qu'un découvert qu'on n'a pas vu venir. */
+    final impot = min(du, max(0.0, e.tresorerie));
+    e.impotReporte = du - impot;
     e.tresorerie -= impot;
     e.dernierImpot = impot;
+    if (e.impotReporte > 0) {
+      journaliser(e,
+          'Impôt reporté : ${Nombres.euros(e.impotReporte)} restent dus.');
+    }
     e.dernierResultat = resultat;
     e.resultatExercice = 0;
     e.chargesExercice = 0;

@@ -5,7 +5,14 @@ const fs = require('fs');
 const sortie = '../mobile/lib/layers/functional/Partie/domain/catalogue/';
 
 const txt = s => "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\$/g, '\\$') + "'";
-const num = v => Number.isInteger(v) ? v : v;
+/* Dart refuse un littéral entier qu'un « double » ne représente pas
+   exactement, et les coûts de recherche des dernières ères dépassent
+   largement ce seuil. On écrit donc toujours un double. */
+const num = v => {
+  if (!Number.isFinite(v)) throw new Error('coût non fini : ' + v);
+  if (Number.isInteger(v) && Math.abs(v) < 1e15) return v + '.0';
+  return v.toExponential(12).replace('e+', 'e');
+};
 
 /* ---- technologies ---- */
 let d = "import '../entities/technologie.dart';\n\nconst technologies = <Technologie>[\n";

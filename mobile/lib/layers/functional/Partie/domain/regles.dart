@@ -219,12 +219,19 @@ class Regles {
   /// Un ingénieur de 2040 ne se paie pas au tarif de 1975 : le tarif suit
   /// l'activité. Un salaire figé à l'embauche décroche donc peu à peu, et il
   /// faut augmenter les gens pour les garder — comme dans la vraie vie.
-  static const double tauxSalaireMarche = .05;
+  /// Ce que pèse la paie, rapporté à ce que l'atelier encaisse à plein régime.
+  ///
+  /// C'est le poste le plus lourd d'une entreprise qui fabrique, et c'est ce
+  /// qui doit rendre une embauche sérieuse. Il grandit avec la société : on ne
+  /// paie pas dans un garage comme dans un groupe. Le tenir constant étouffait
+  /// les ères du milieu, où une masse salariale de grande entreprise tombe sur
+  /// une société qui n'en est pas encore une.
+  static double coefficientSalaire(EtatPartie e) => 1.2 + .2 * ereCourante(e);
 
   /// Le plancher évite un tarif nul quand l'atelier ne tourne pas encore :
   /// personne ne travaille gratuitement en attendant la première machine.
-  static double salaireMarche(EtatPartie e) =>
-      tauxSalaireMarche * max(recetteBrute(e), prixUnite(e));
+  static double assietteSalaire(EtatPartie e) =>
+      max(recetteBrute(e), prixUnite(e));
 
   /// Ce que coûte cette personne, en euros par seconde.
   ///
@@ -232,7 +239,7 @@ class Regles {
   /// qui change tout par rapport à une commission sur les ventes, c'est qu'ils
   /// tombent même les jours où l'on ne vend rien.
   static double salaireDe(EtatPartie e, Employe membre) =>
-      membre.part / tauxSalaireMarche * salaireMarche(e);
+      membre.part * coefficientSalaire(e) * assietteSalaire(e);
 
   /// La masse salariale, en euros par seconde.
   ///
@@ -246,17 +253,26 @@ class Regles {
     return t;
   }
 
-  /// Part du prix d'achat d'une machine qu'il faut dépenser chaque seconde
-  /// pour la garder en état. Un parc immobile coûte quand même.
-  static const double tauxEntretien = 1 / 12000;
-
-  static double entretienParc(EtatPartie e) {
+  /// Ce que vaut le parc : la somme de ce que chaque exemplaire a coûté.
+  ///
+  /// Chaque exemplaire supplémentaire se paie 19 % de plus que le précédent,
+  /// d'où la somme géométrique. C'est la valeur à entretenir, et elle suit la
+  /// progression du joueur — au contraire du prix de base, qui ne bouge pas.
+  static double valeurParc(EtatPartie e) {
     var t = 0.0;
     for (var i = 0; i < stations.length; i++) {
-      t += e.exemplaires[i] * stations[i].coutBase * tauxEntretien;
+      final n = e.exemplaires[i];
+      if (n <= 0) continue;
+      t += stations[i].coutBase * (pow(1.19, n) - 1) / .19;
     }
     return t;
   }
+
+  /// Part de la valeur du parc qu'il faut dépenser chaque seconde pour le
+  /// garder en état. Un parc immobile coûte quand même.
+  static const double tauxEntretien = 1 / 13000;
+
+  static double entretienParc(EtatPartie e) => valeurParc(e) * tauxEntretien;
 
   /// Tout ce qui sort chaque seconde, production ou pas.
   static double chargesParSeconde(EtatPartie e) =>

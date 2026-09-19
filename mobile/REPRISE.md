@@ -42,11 +42,18 @@ référence : toute règle qui diverge est un bogue du portage.
 L'économie (charges fixes, salaires en euros, impôt, découvert) n'existe que
 côté Dart. `../jeu/` garde l'ancienne économie et **ne mesure plus le même
 jeu** : `outils/calibrage.js` et `outils/equilibrage.js` sont donc périmés
-pour l'équilibrage. Le rythme se mesure maintenant avec :
+pour l'équilibrage. Le rythme se mesure et se calibre maintenant côté Dart :
 
 ```bash
-dart run tool/rythme.dart 40
+dart run tool/rythme.dart 40     # rapport de rythme
+dart run tool/comptes.dart       # le compte de résultat au fil de la partie
+dart run tool/calibrage.dart     # ajuste les coûts de recherche, puis :
+(cd ../outils && node porter_vers_dart.js)
 ```
+
+Le calibrage se fait par passages successifs : chacun réécrit `donnees.js`, et
+il faut régénérer entre deux. Une dizaine de passages amènent l'écart moyen
+sous 10 %.
 
 Le joueur simulé de `tool/joueur_simule.dart` est partagé avec les tests de
 fidélité : une seule copie, sinon les deux finissent par mesurer deux jeux
